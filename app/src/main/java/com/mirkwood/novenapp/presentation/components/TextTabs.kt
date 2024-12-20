@@ -32,7 +32,8 @@ fun TextTabs(innerPadding: PaddingValues,
         NovenaTab.Consideracion,
         NovenaTab.OracionTodosLosDias,
         NovenaTab.OracionALaVirgen,
-        NovenaTab.OracionSanJose
+        NovenaTab.OracionSanJose,
+        NovenaTab.Gozos
     )
 
     Column(modifier = Modifier.padding(innerPadding)) {
@@ -55,6 +56,7 @@ fun TextTabs(innerPadding: PaddingValues,
             is NovenaTab.OracionTodosLosDias -> ReadingScreen(textContent = mainViewModel.getContent(ctx).general.oracion_todos_los_dias)
             is NovenaTab.OracionALaVirgen -> ReadingScreen(textContent = mainViewModel.getContent(ctx).general.oracion_virgen_maria)
             is NovenaTab.OracionSanJose -> ReadingScreen(textContent = mainViewModel.getContent(ctx).general.oracion_san_jose)
+            is NovenaTab.Gozos -> GozosScreen(gozos = mainViewModel.getContent(ctx).gozos)
             else -> Unit
         }
     }

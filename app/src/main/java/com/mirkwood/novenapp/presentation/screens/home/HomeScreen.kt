@@ -12,12 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
 import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.MainViewModel
-import com.mirkwood.novenapp.presentation.NavigationScreen
 import com.mirkwood.novenapp.presentation.components.CountdownExample
 import com.mirkwood.novenapp.presentation.components.GoToDayButton
 import com.mirkwood.novenapp.presentation.components.MainTitle
@@ -31,7 +28,7 @@ fun HomeScreen(
     ) {
 
         Image(
-            painter = painterResource(id = R.drawable.novena),
+            painter = painterResource(id = R.drawable.novena3),
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
             contentDescription = "novena"

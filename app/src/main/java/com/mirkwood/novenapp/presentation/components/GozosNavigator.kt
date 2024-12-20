@@ -27,10 +27,7 @@ import androidx.compose.material3.Text
 fun GozosNavigator(gozos: List<Gozo>) {
     var currentIndex by remember { mutableStateOf(0) }
     val currentGozo: Gozo = gozos.get(currentIndex)
-    Log.d("GozosNavigator", "currentIndex: $currentIndex")
-    Log.d("GozosNavigator", "currentGozo: $currentGozo")
-    Log.d("GozosNavigator", "gozos: $gozos")
-    if(gozos.isEmpty()) return
+    if (gozos.isEmpty()) return
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -68,6 +65,16 @@ fun GozosNavigator(gozos: List<Gozo>) {
             ) {
                 Text(text = "Siguiente")
             }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = {
+                currentIndex = 0
+            },
+            enabled = currentIndex != 0
+
+            ) {
+            Text(text = "Ir al principio")
         }
     }
 }

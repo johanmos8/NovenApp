@@ -1,8 +1,10 @@
 package com.mirkwood.novenapp.presentation.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -16,7 +18,8 @@ import com.mirkwood.novenapp.presentation.NavigationScreen
 @Composable
 fun NovenaTopAppBar(
     navController: NavController,
-    showBackButton: Boolean = false
+    showBackButton: Boolean = false,
+    drawerAction: () -> Unit
 ) {
     TopAppBar(
         title = { Text(text = "Novena de Aguinaldos") },
@@ -27,15 +30,17 @@ fun NovenaTopAppBar(
                     navController.navigate(NavigationScreen.HomeScreen.route) // Regresar a Home
                 }) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back"
                     )
                 }
             } else {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = "Home"
-                )
+                IconButton(onClick = { drawerAction() }) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "Home"
+                    )
+                }
             }
         }
     )

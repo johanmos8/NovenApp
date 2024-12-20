@@ -66,7 +66,14 @@ class MainActivity : ComponentActivity() {
                 }, drawerState = drawerState) {
                     Scaffold(modifier = Modifier.fillMaxSize(),
                         topBar = {
-                            NovenaTopAppBar(navController = navController, showBackButton = currentRoute != NavigationScreen.HomeScreen.route)
+                            NovenaTopAppBar(
+                                navController = navController,
+                                showBackButton = currentRoute != NavigationScreen.HomeScreen.route,
+                                drawerAction= {
+                                    coroutineScope.launch {
+                                        drawerState.open() // abre el drawer
+                                    }
+                                })
                         }
                     ) { innerPadding ->
                         NavHost(

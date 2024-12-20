@@ -1,5 +1,6 @@
 package com.mirkwood.novenapp.presentation.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
@@ -18,9 +19,9 @@ import androidx.compose.ui.graphics.Color
 @Composable
 fun ReadingScreen(
     textContent: String,
-    isDarkMode: Boolean = false,
-    onToggleTheme: () -> Unit = {}
-) {
+
+    ) {
+    val isDarkMode = isSystemInDarkTheme()
     val backgroundColor = if (isDarkMode) Color(0xFF121212) else Color(0xFFF5F5F5)
     val textColor = if (isDarkMode) Color(0xFFE0E0E0) else Color(0xFF212121)
 

@@ -10,8 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.mirkwood.novenapp"
-        minSdk = 34
-        targetSdk = 34
+        minSdk = 33
         versionCode = 1
         versionName = "1.0"
 
@@ -70,5 +69,8 @@ dependencies {
     implementation(libs.coil.compose)
     //Gson
     implementation(libs.gson)
-
+    //Lottie
+    implementation(libs.lottie)
+    implementation(libs.lottie.compose)
+    implementation(project(":compose-preview"))
 }

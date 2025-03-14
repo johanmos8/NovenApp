@@ -1,15 +1,24 @@
 package com.mirkwood.novenapp.presentation
 
 import android.content.Context
-import androidx.lifecycle.LiveData
-import java.time.LocalDate
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
 import com.google.gson.Gson
 import com.mirkwood.novenapp.presentation.model.Novena
+import com.mirkwood.novenapp.presentation.state.NovenaViewState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import java.time.LocalDate
 
-class MainViewModel : ViewModel() {
+internal class MainViewModel : ViewModel() {
 
+    private val _state = MutableStateFlow(NovenaViewState())
+    val state: StateFlow<NovenaViewState> = _state.asStateFlow()
 
+    init {
+        getNovenaDay()
+    }
 
     fun getContent(context: Context): Novena {
         val json = loadJSONFromAsset(context, "content.json")
@@ -34,12 +43,26 @@ class MainViewModel : ViewModel() {
         val today = LocalDate.now()
         val start = LocalDate.of(today.year, 12, 16)
         val end = LocalDate.of(today.year, 12, 24)
-
-        return if (today in start..end) {
+        val value = if (today in start..end) {
             // Calculamos el día basado en el rango
             (today.dayOfMonth - start.dayOfMonth + 1)
         } else {
             null // Retornamos null si la fecha no está en el rango
+        }
+        _state.value = _state.value.copy(currentDay = value)
+        return value
+    }
+
+    fun onAction(action: NovenaAction, navController: NavController) {
+        when (action) {
+            NovenaAction.GoHome -> {
+                navController.navigate(NavigationScreen.HomeScreen.route) // Regresar a Home
+            }
+
+            is NovenaAction.GoToDay -> {
+                navController.navigate(NavigationScreen.DayScreen.createRoute(action.selectedDay))
+
+            }
         }
     }
 

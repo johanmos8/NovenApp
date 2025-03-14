@@ -17,16 +17,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.MainViewModel
 import com.mirkwood.novenapp.presentation.model.NovenaTab
 
 @Composable
-fun TextTabs(innerPadding: PaddingValues,
+internal fun TextTabs(
+    innerPadding: PaddingValues,
     mainViewModel: MainViewModel,
     position: Int
 ) {
     var state by remember { mutableStateOf(0) }
-    val ctx= LocalContext.current
+    val ctx = LocalContext.current
     // Define los tabs usando sealed classes
     val tabs = listOf(
         NovenaTab.Consideracion,
@@ -38,10 +40,13 @@ fun TextTabs(innerPadding: PaddingValues,
 
     Column(modifier = Modifier.padding(innerPadding)) {
         // Mostrar los títulos en el TabRow
-        TabRow(selectedTabIndex = state) {
+        TabRow(
+            selectedTabIndex = state, contentColor = MaterialTheme.colorScheme.onBackground
+        ) {
             tabs.forEachIndexed { index, tab ->
-                if(tab == NovenaTab.Consideracion){
-                    tab.title = "Consideración día $position"
+                if (tab == NovenaTab.Consideracion) {
+                    val day = index + 1
+                    tab.title = ctx.getString(R.string.text_consideration, position)
                 }
                 Tab(
                     text = { Text(tab.title) },
@@ -52,11 +57,21 @@ fun TextTabs(innerPadding: PaddingValues,
         }
 
         when (val selectedTab = tabs[state]) {
-            is NovenaTab.Consideracion -> ReadingScreen(textContent = mainViewModel.getContent(ctx).dias[position-1].reflexion)
-            is NovenaTab.OracionTodosLosDias -> ReadingScreen(textContent = mainViewModel.getContent(ctx).general.oracion_todos_los_dias)
-            is NovenaTab.OracionALaVirgen -> ReadingScreen(textContent = mainViewModel.getContent(ctx).general.oracion_virgen_maria)
+            is NovenaTab.Consideracion -> ReadingScreen(textContent = mainViewModel.getContent(ctx).dias[position - 1].reflexion)
+            is NovenaTab.OracionTodosLosDias -> ReadingScreen(
+                textContent = mainViewModel.getContent(
+                    ctx
+                ).general.oracion_todos_los_dias
+            )
+
+            is NovenaTab.OracionALaVirgen -> ReadingScreen(
+                textContent = mainViewModel.getContent(
+                    ctx
+                ).general.oracion_virgen_maria
+            )
+
             is NovenaTab.OracionSanJose -> ReadingScreen(textContent = mainViewModel.getContent(ctx).general.oracion_san_jose)
-            is NovenaTab.Gozos -> GozosScreen(gozos = mainViewModel.getContent(ctx).gozos)
+            is NovenaTab.Gozos -> TODO() //GozosScreen(gozos = mainViewModel.getContent(ctx).gozos, R.drawable.novena_music)
             else -> Unit
         }
     }

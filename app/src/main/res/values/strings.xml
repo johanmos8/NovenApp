@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">NovenApp</string>
+    <string name="novena_aguinaldos_title">Novena de Aguinaldos</string>
+    <string name="text_ir_al_principio">Ir al principio</string>
+    <string name="text_siguiente">Siguiente</string>
+    <string name="text_anterior">Anterior</string>
+    <string name="text_ir_a">Ir al día %s</string>
+    <string name="text_regresa">Regresar</string>
+    <string name="text_ir_a_inicio">Inicio</string>
+    <string name="text_consideration">Consideración día %d</string>
+    <string name="text_dia">Día %d</string>
+    <string name="text_tiempo_llegado">¡El tiempo ha llegado!</string>
+    <string name="text_navidad_en">Navidad en:</string>
+    <string name="text_navidad_en_yy_mm_dd">"%d días, %d horas, %d minutos, %d segundos"</string>
+    <string name="gozos_title">Gozos</string>
 </resources>

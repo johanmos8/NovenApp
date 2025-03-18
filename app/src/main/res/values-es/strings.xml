@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NovenApp</string>
+    <string name="novena_aguinaldos_title">Novena de Aguinaldos</string>
+    <string name="text_ir_al_principio">Ir al principio</string>
+    <string name="text_siguiente">Siguiente</string>
+    <string name="text_anterior">Anterior</string>
+    <string name="text_ir_a">Ir al día %s</string>
+    <string name="text_regresa">Regresar</string>
+    <string name="text_ir_a_inicio">Inicio</string>
+    <string name="text_consideration">Consideración día %d</string>
+    <string name="text_dia">Día %d</string>
+    <string name="text_tiempo_llegado">¡El tiempo ha llegado!</string>
+    <string name="text_navidad_en">Navidad en:</string>
+    <string name="text_navidad_en_yy_mm_dd">"%d días, %d horas, %d minutos, %d segundos"</string>
+    <string name="gozos_title">Gozos</string>
+    <string name="our_father_title">Padre Nuestro</string>
+    <string name="hail_mary_title">Ave María</string>
+    <string name="glory_be_title">Gloria</string>
+    <string name="divine_child_title">Divino Niño</string>
+
+    <string name="our_father">
+        Padre nuestro que estás en el cielo, santificado sea tu Nombre;
+        venga a nosotros tu reino; hágase tu voluntad en la tierra como en el cielo.
+        Danos hoy nuestro pan de cada día; perdona nuestras ofensas,
+        como también nosotros perdonamos a los que nos ofenden;
+        no nos dejes caer en la tentación, y líbranos del mal. Amén.
+    </string>
+
+    <string name="hail_mary">
+        Dios te salve, María, llena eres de gracia, el Señor es contigo.
+        Bendita tú eres entre todas las mujeres, y bendito es el fruto de tu vientre, Jesús.
+        Santa María, Madre de Dios, ruega por nosotros, pecadores,
+        ahora y en la hora de nuestra muerte. Amén.
+    </string>
+
+    <string name="glory_be">
+        Gloria al Padre, y al Hijo, y al Espíritu Santo.
+        Como era en el principio, ahora y siempre, por los siglos de los siglos. Amén.
+    </string>
+
+    <string name="divine_child">
+        - Oh Divino Niño Jesús
+        - (Todos) Bendecinos con amor
+    </string>
+</resources>

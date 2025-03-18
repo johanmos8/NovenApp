@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -47,7 +48,7 @@ fun CountdownToDate() {
 
     if (remainingTime <= 0) {
         Text(
-            text = context.getString(R.string.text_tiempo_llegado),
+            text = stringResource(R.string.text_tiempo_llegado),
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onBackground
@@ -65,7 +66,7 @@ fun CountdownToDate() {
             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
         ) {
             Text(
-                text = context.getString(R.string.text_navidad_en),
+                text = stringResource(R.string.text_navidad_en),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -73,7 +74,7 @@ fun CountdownToDate() {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = context.getString(
+                text = stringResource(
                     R.string.text_navidad_en_yy_mm_dd,
                     days,
                     hours,

@@ -31,6 +31,7 @@ internal sealed interface MainModule {
     sealed class Instrument(@RawRes val soundRes: Int) {
         object Tambourine : Instrument(R.raw.sonido_pandereta)
         object Maraca : Instrument(R.raw.sonido_maraca)
+        object Music : Instrument(R.raw.sonido_maraca)
 
     }
 }

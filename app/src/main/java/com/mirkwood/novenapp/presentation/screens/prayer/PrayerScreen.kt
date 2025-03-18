@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,8 +22,6 @@ import androidx.compose.ui.unit.dp
 import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.components.GozosScreen
-import com.mirkwood.novenapp.presentation.components.ReadingScreen
-import com.mirkwood.novenapp.presentation.components.ReadingWithImageScreen
 import com.mirkwood.novenapp.presentation.model.MainModule
 import com.mirkwood.novenapp.presentation.model.Prayer
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
@@ -60,7 +56,8 @@ internal fun PrayerScreen(
                         selectedTab.text, MainModule.Hero(
                             selectedTab.imageRes,
                             height = MainModule.Hero.DefaultHeight
-                        )
+                        ),
+                        finalPrayers = selectedTab.finalPrayers
                     )
                 }
 

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,17 +33,33 @@ internal fun IconView() {
     var isMusicEnabled by remember { mutableStateOf(false) }
     fun toggleA() {
         isAEnabled = !isAEnabled
-        if (isAEnabled) isBEnabled = false // 🔴 Apagar B si A se enciende
+        if (isAEnabled) {
+            isBEnabled = false // 🔴 Apagar B si A se enciende
+            isMusicEnabled = false
+        }
     }
 
     fun toggleB() {
         isBEnabled = !isBEnabled
-        if (isBEnabled) isAEnabled = false // 🔴 Apagar A si B se enciende
+        if (isBEnabled) {
+            isAEnabled = false // 🔴 Apagar A si B se enciende
+            isMusicEnabled = false
+        }
+    }
+
+    fun toggleC() {
+        isMusicEnabled = !isMusicEnabled
+        if (isMusicEnabled) {
+            isAEnabled = false // 🔴 Apagar A si B se enciende
+            isBEnabled = false
+        }
     }
     if (isAEnabled) {
         InstrumentSound(MainModule.Instrument.Maraca)
     } else if (isBEnabled) {
         InstrumentSound(MainModule.Instrument.Tambourine)
+    } else if (isMusicEnabled) {
+        InstrumentSound(MainModule.Instrument.Music)
     }
     Row(
         modifier = Modifier
@@ -63,7 +78,7 @@ internal fun IconView() {
             isBEnabled,
             onClick = { toggleB() })
         Spacer(modifier = Modifier.width(8.dp))
-        CircularIcon(R.drawable.icon_music, isMusicEnabled, { isMusicEnabled = !isMusicEnabled })
+        CircularIcon(R.drawable.icon_music, isMusicEnabled, { toggleC() })
     }
 }
 

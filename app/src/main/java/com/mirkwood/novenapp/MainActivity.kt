@@ -3,12 +3,11 @@ package com.mirkwood.novenapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.DrawerState
@@ -16,15 +15,16 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -32,9 +32,9 @@ import androidx.navigation.compose.rememberNavController
 import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.presentation.AppNavHost
 import com.mirkwood.novenapp.presentation.MainViewModel
-import com.mirkwood.novenapp.presentation.NavigationScreen
+import com.mirkwood.novenapp.presentation.navigation.NavigationScreen
 import com.mirkwood.novenapp.presentation.components.AppDrawer
-import com.mirkwood.novenapp.presentation.components.NovenaTopAppBar
+import com.mirkwood.novenapp.presentation.NovenaTopAppBar
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
 import kotlinx.coroutines.launch
 
@@ -60,17 +60,29 @@ fun MyApp() {
 
     NovenAppTheme {
         ModalNavigationDrawer(drawerContent = {
-            AppDrawer(
-                onOptionClick = { option ->
-                    viewModel.onAction(option, navController)
-                },
-                closeDrawer = {
-                    coroutineScope.launch {
-                        drawerState.close() // Cierra el drawer
-                    }
-                },
+            ModalDrawerSheet(
+                drawerState = drawerState,
+                drawerContainerColor = MaterialTheme.colorScheme.background,
+                drawerContentColor = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier
-            )
+                    .fillMaxHeight()
+                    .wrapContentWidth()
+            ) {
+                AppDrawer(
+                    onOptionClick = { option ->
+                        viewModel.onAction(option, navController)
+                    },
+                    closeDrawer = {
+                        coroutineScope.launch {
+                            drawerState.close() // Cierra el drawer
+                        }
+                    },
+                    modifier = Modifier,
+                    onLyricsClick = {
+                        navController.navigate(NavigationScreen.LyricsScreen.route)
+                    }
+                )
+            }
         }, drawerState = drawerState) {
             Scaffold(modifier = Modifier.fillMaxSize(),
                 topBar = {
@@ -82,9 +94,6 @@ fun MyApp() {
                                     drawerState.open() // abre el drawer
                                 }
                             },
-                            onHomeClick = {
-                                navController.navigate(NavigationScreen.HomeScreen.route)
-                            }
                         )
                     }
                 }
@@ -94,7 +103,7 @@ fun MyApp() {
                         .fillMaxSize()
                         .padding(innerPadding)
                 ) {
-                    if (NavigationScreen.HomeScreen.route != currentRoute) {
+                    if (NavigationScreen.DayScreen.route == currentRoute) {
                         BackButton(
                             modifier = Modifier
                                 .align(Alignment.TopStart)
@@ -115,7 +124,11 @@ fun BackButton(modifier: Modifier = Modifier, onBackClick: () -> Unit) {
         onClick = onBackClick,
         modifier = modifier.padding(16.dp) // Ajusta la posición
     ) {
-        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            tint = Color.White,
+            contentDescription = "Back"
+        )
     }
 }
 

@@ -30,7 +30,8 @@ internal fun InstrumentSound(
     var lastAcceleration by remember { mutableStateOf(0f) }
     DisposableEffect(Unit) {
 
-        sound.playbackParams = sound.playbackParams.setSpeed(1.5f) // 🔥 Ajusta la velocidad más realista
+        sound.playbackParams =
+            sound.playbackParams.setSpeed(1.5f) // 🔥 Ajusta la velocidad más realista
         val sensorListener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent?) {
                 event?.let {

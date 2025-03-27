@@ -27,8 +27,6 @@ internal fun PrayerFooter() {
     )
     var openDialog by remember { mutableStateOf(false) }
     var selectedPrayer by remember { mutableStateOf<MainPrayer?>(null) }
-
-    val ctx = LocalContext.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween

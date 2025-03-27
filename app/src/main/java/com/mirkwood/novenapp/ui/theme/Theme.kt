@@ -34,43 +34,44 @@ private val LightColorScheme = lightColorScheme(
     */
 )*/
 
-    private val LightColorScheme = lightColorScheme(
-        primary = Color(0xFF6200EE),
-        onPrimary = Color.White,
-        background = Color(0xFFFAFAFA),
-        onBackground = Color(0xFF212121), // Color para textos largos en fondo claro
-        surface = Color.White,
-        onSurface = Color(0xFF616161) // Color secundario para textos en fondo claro
-    )
+private val LightColorScheme = lightColorScheme(
+    primary = LightPrimary,
+    onPrimary = LightOnPrimary,
+    background = LightBackground,
+    onBackground = LightOnBackground,
+    surface = LightSurface,
+    onSurface = LightOnSurface
+)
 
-    private val DarkColorScheme = darkColorScheme(
-        primary = Color(0xFFBB86FC),
-        onPrimary = Color.Black,
-        background = Color(0xFF121212),
-        onBackground = Color(0xFFE0E0E0), // Color para textos largos en fondo oscuro
-        surface = Color(0xFF1E1E1E),
-        onSurface = Color(0xFFBDBDBD) // Color secundario para textos en fondo oscuro
-    )
-    @Composable
-    fun NovenAppTheme(
-        darkTheme: Boolean = isSystemInDarkTheme(),
-        // Dynamic color is available on Android 12+
-        dynamicColor: Boolean = true,
-        content: @Composable () -> Unit
-    ) {
-        val colorScheme = when {
-            dynamicColor && true -> {
-                val context = LocalContext.current
-                if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-            }
+private val DarkColorScheme = darkColorScheme(
+    primary = DarkPrimary,
+    onPrimary = DarkOnPrimary,
+    background = DarkBackground,
+    onBackground = DarkOnBackground,
+    surface = DarkSurface,
+    onSurface = DarkOnSurface
+)
 
-            darkTheme -> DarkColorScheme
-            else -> LightColorScheme
+@Composable
+fun NovenAppTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    // Dynamic color is available on Android 12+
+    dynamicColor: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when {
+        dynamicColor && true -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        MaterialTheme(
-            colorScheme = colorScheme,
-            typography = Typography,
-            content = content
-        )
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
     }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
+}

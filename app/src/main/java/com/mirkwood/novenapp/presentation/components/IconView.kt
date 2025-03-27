@@ -59,7 +59,7 @@ internal fun IconView() {
     } else if (isBEnabled) {
         InstrumentSound(MainModule.Instrument.Tambourine)
     } else if (isMusicEnabled) {
-        InstrumentSound(MainModule.Instrument.Music)
+        InstrumentSound(MainModule.Instrument.Music, isMusicEnabled)
     }
     Row(
         modifier = Modifier
@@ -68,6 +68,8 @@ internal fun IconView() {
 
         ) {
 
+        /*
+        TODO("definir bien el sonido de los intrumentos")
         CircularIcon(
             R.drawable.icon_maraca,
             isAEnabled,
@@ -77,7 +79,7 @@ internal fun IconView() {
             R.drawable.icon_tambourine,
             isBEnabled,
             onClick = { toggleB() })
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(8.dp))*/
         CircularIcon(R.drawable.icon_music, isMusicEnabled, { toggleC() })
     }
 }

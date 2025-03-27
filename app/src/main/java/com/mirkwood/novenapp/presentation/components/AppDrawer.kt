@@ -2,6 +2,7 @@ package com.mirkwood.novenapp.presentation.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +30,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterStart
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -41,56 +44,6 @@ import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.NovenaAction
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
-
-/*@Composable
-internal fun AppDrawer(
-    modifier: Modifier = Modifier,
-    onOptionClick: (NovenaAction) -> Unit,
-    onLyricsClick: () -> Unit,
-    closeDrawer: () -> Unit = {}
-) {
-    val days =
-        (1..9).map { stringResource(R.string.text_dia, it) } // Genera los títulos de los días
-
-
-    DrawerHeader(modifier)
-    HorizontalDivider()
-    Spacer(modifier = Modifier.height(16.dp))
-    Text(
-        text = "Novena",
-        fontWeight = FontWeight.Bold,
-        fontSize = 18.sp,
-        modifier = Modifier.padding(16.dp)
-    )
-
-    HorizontalDivider(thickness = 1.dp)
-    Text(
-        text = "Villancicos",
-        fontWeight = FontWeight.Bold,
-        fontSize = 18.sp,
-        modifier = Modifier.padding(16.dp)
-    )
-    NavigationDrawerItem(
-        label = {
-            Text(
-                text = "Lyrics",
-                style = MaterialTheme.typography.labelLarge
-            )
-        },
-        selected = false,
-        onClick = {
-            onLyricsClick()
-            closeDrawer()
-        },
-        icon = {
-            Icon(
-                painter = painterResource(R.drawable.music_note_24px),
-                contentDescription = null
-            )
-        },
-        shape = MaterialTheme.shapes.small
-    )
-}*/
 
 
 @Composable
@@ -107,28 +60,8 @@ internal fun AppDrawer(
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         DrawerHeader()
         DividerItem()
-        DrawerItemHeader("Dias de la novena")
+        DrawerItemHeader(stringResource(R.string.text_novena_days))
         days.forEachIndexed { index, day ->
-            /*NavigationDrawerItem(
-                label = {
-                    Text(
-                        text = day,
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                },
-                selected = false,
-                onClick = {
-                    onOptionClick(NovenaAction.GoToDay(index + 1))
-                    closeDrawer()
-                },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = null
-                    )
-                },
-                shape = MaterialTheme.shapes.small
-            )*/
             NovenaItem(
                 text = day,
                 onOptionClicked = {
@@ -139,10 +72,10 @@ internal fun AppDrawer(
             )
         }
         DividerItem(modifier = Modifier.padding(horizontal = 28.dp))
-        DrawerItemHeader("Villancicos")
+        DrawerItemHeader(stringResource(R.string.text_villancicos))
         VillancicoItem(
             selected = false,
-            text = "Lyrics",
+            text = stringResource(R.string.text_lyrics),
             onOptionClicked = {
                 onLyricsClick()
                 closeDrawer()
@@ -168,19 +101,14 @@ private fun NovenaItem(text: String, selected: Boolean, onOptionClicked: () -> U
             .clickable(onClick = { onOptionClicked() }),
         verticalAlignment = CenterVertically
     ) {
-        val iconTint = if (selected) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        }
-        Icon(
-            imageVector = Icons.Filled.Check,
-            //painter = painterResource(id = R.drawable.music_note_24px),
-            tint = iconTint,
-            modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 16.dp),
-            contentDescription = null
+
+        Image(
+            painter = painterResource(id = R.drawable.icon_praying),
+            contentDescription = null,
+            modifier = Modifier
+                .size(24.dp) // Tamaño del icono
+                .clip(CircleShape)
         )
-        Icons.Filled.Check
         Text(
             text,
             style = MaterialTheme.typography.bodyMedium,
@@ -222,7 +150,6 @@ private fun VillancicoItem(text: String, selected: Boolean, onOptionClicked: () 
             modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 16.dp),
             contentDescription = null
         )
-        Icons.Filled.Check
         Text(
             text,
             style = MaterialTheme.typography.bodyMedium,

@@ -75,25 +75,25 @@ fun AppNavHost(
                     Prayer.WithImage(
                         content.general.oracion_todos_los_dias,
                         R.drawable.pesebre,
-                        stringResource(NovenaTab.OracionTodosLosDias.titleResId)
+                        NovenaTab.OracionTodosLosDias.title
                     ),
                     Prayer.WithImage(
                         content.general.oracion_virgen_maria,
                         R.drawable.virgen_maria,
-                        stringResource(NovenaTab.OracionALaVirgen.titleResId),
+                        NovenaTab.OracionALaVirgen.title,
                         true
                     ),
                     Prayer.WithImage(
                         content.general.oracion_san_jose,
                         R.drawable.san_jose,
-                        stringResource(NovenaTab.OracionSanJose.titleResId),
+                        NovenaTab.OracionSanJose.title,
                         true
                     ),
-                    Prayer.AllGozos(content.gozos, R.drawable.novena_music, stringResource(NovenaTab.Gozos.titleResId)),
+                    Prayer.AllGozos(content.gozos, R.drawable.novena_music, NovenaTab.Gozos.title),
                     Prayer.WithImage(
                         content.general.oracion_niño_jesus,
                         R.drawable.baby_jesus,
-                       stringResource(NovenaTab.OracionAJesus.titleResId),
+                        NovenaTab.OracionAJesus.title,
                         true
                     ),
 

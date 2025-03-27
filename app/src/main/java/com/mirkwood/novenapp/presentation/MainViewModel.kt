@@ -7,6 +7,9 @@ import com.google.gson.Gson
 import com.mirkwood.novenapp.presentation.model.Novena
 import com.mirkwood.novenapp.presentation.navigation.NavigationScreen
 import com.mirkwood.novenapp.presentation.state.NovenaViewState
+import com.mirkwood.novenapp.presentation.util.INITIAL_DAY
+import com.mirkwood.novenapp.presentation.util.LAST_DAY
+import com.mirkwood.novenapp.presentation.util.TARGET_MONTH
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,15 +38,15 @@ internal class MainViewModel : ViewModel() {
             inputStream.close()
             String(buffer, Charsets.UTF_8)
         } catch (ex: Exception) {
-            ex.printStackTrace()
+
             null
         }
     }
 
     fun getNovenaDay(): Int? {
         val today = LocalDate.now()
-        val start = LocalDate.of(today.year, 12, 16)
-        val end = LocalDate.of(today.year, 12, 24)
+        val start = LocalDate.of(today.year, TARGET_MONTH, INITIAL_DAY)
+        val end = LocalDate.of(today.year, TARGET_MONTH, LAST_DAY)
         val value = if (today in start..end) {
             // Calculamos el día basado en el rango
             (today.dayOfMonth - start.dayOfMonth + 1)

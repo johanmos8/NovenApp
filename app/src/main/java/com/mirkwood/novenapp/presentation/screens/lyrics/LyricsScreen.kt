@@ -38,9 +38,11 @@ fun LyricsScreen(songTitle: String, lyrics: String, onBack: () -> Unit) {
                     }
                 },
                 actions = {
+                    /*
+                    TODO("implementar favoritos")
                     IconButton(onClick = { /* Guardar en favoritos */ }) {
-                        Icon(Icons.Default.FavoriteBorder, contentDescription = "Favoritos")
-                    }
+                                            Icon(Icons.Default.FavoriteBorder, contentDescription = "Favoritos")
+                     }*/
                 }
             )
         }

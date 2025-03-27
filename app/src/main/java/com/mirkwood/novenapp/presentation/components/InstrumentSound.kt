@@ -18,25 +18,53 @@ import com.mirkwood.novenapp.presentation.model.MainModule
 @Composable
 internal fun InstrumentSound(
     instrument: MainModule.Instrument,
+    isPlaying: Boolean = false
 ) {
     val context = LocalContext.current
-    val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
     var sound = remember {
         MediaPlayer.create(
             context,
             instrument.soundRes
         )
-    }  // Agregar un sonido en res/raw/
+    }
+    when (instrument) {
+        MainModule.Instrument.Maraca,
+        MainModule.Instrument.Tambourine -> {
+            PlayInstrument(sound, context)
+        }
+
+        MainModule.Instrument.Music -> {
+            if (isPlaying) {
+                sound.start()
+            } else {
+                sound.pause()
+            }
+        }
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            sound.release() // Liberar recursos cuando el Composable se destruye
+        }
+
+    }
+
+
+}
+
+@Composable
+fun PlayInstrument(sound: MediaPlayer, context: Context) {
+    val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+    // Agregar un sonido en res/raw/
     var lastAcceleration by remember { mutableStateOf(0f) }
     DisposableEffect(Unit) {
 
-        sound.playbackParams =
-            sound.playbackParams.setSpeed(1.5f) // 🔥 Ajusta la velocidad más realista
         val sensorListener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent?) {
                 event?.let {
                     val acceleration = event.values[0] + event.values[1] + event.values[2]
-                    if (Math.abs(acceleration - lastAcceleration) > 2) {  // Sensibilidad ajustable
+                    if (Math.abs(acceleration - lastAcceleration) > 8) {  // Sensibilidad ajustable
                         sound.start()
                     }
                     lastAcceleration = acceleration
@@ -51,9 +79,6 @@ internal fun InstrumentSound(
 
         onDispose {
             sensorManager.unregisterListener(sensorListener)
-            sound.release()
         }
     }
-
-
 }

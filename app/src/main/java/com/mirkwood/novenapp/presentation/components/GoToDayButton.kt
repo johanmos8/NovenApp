@@ -20,7 +20,7 @@ internal fun GoToDayButton(
     ) {
         Text(
             text = stringResource(R.string.text_ir_a, currentDay.toString()),
-            color = MaterialTheme.colorScheme.onBackground
+            color = MaterialTheme.colorScheme.background
         )
     }
 

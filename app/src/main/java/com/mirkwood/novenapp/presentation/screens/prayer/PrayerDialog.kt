@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.mirkwood.compose_preview.PreviewAllPhones
+import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.model.MainPrayer
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
 
@@ -33,7 +34,7 @@ fun PrayerDialog(
         },
         confirmButton = {
             TextButton(onClick = { onDismiss() }) {
-                Text("Cerrar")
+                Text(stringResource(R.string.close))
             }
         }
     )

@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.R
+import com.mirkwood.novenapp.presentation.util.Util.calculateTimeRemaining
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
 import kotlinx.coroutines.delay
 import java.time.LocalDate
@@ -30,30 +31,18 @@ import java.util.concurrent.TimeUnit
 
 @Composable
 fun CountdownToDate() {
-    val context = LocalContext.current
-    val currentYear = LocalDate.now().year
 
-    val targetDate = LocalDate.of(currentYear, 12, 25) // Año, mes, día
-        .atStartOfDay(ZoneId.systemDefault())
-        .toInstant()
-        .toEpochMilli()
+    var remainingTime by remember { mutableStateOf(calculateTimeRemaining()) }
 
-    var remainingTime by remember { mutableStateOf(calculateTimeRemaining(targetDate)) }
-    LaunchedEffect(key1 = targetDate) {
+    LaunchedEffect(key1 = remainingTime) {
         while (remainingTime > 0) {
             delay(1000L) // Espera un segundo
-            remainingTime = calculateTimeRemaining(targetDate)
+            remainingTime = calculateTimeRemaining()
         }
     }
 
-    if (remainingTime <= 0) {
-        Text(
-            text = stringResource(R.string.text_tiempo_llegado),
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-    } else {
+    if (remainingTime > 0) {
+
         val days = TimeUnit.MILLISECONDS.toDays(remainingTime)
         val hours = TimeUnit.MILLISECONDS.toHours(remainingTime) % 24
         val minutes = TimeUnit.MILLISECONDS.toMinutes(remainingTime) % 60
@@ -89,10 +78,6 @@ fun CountdownToDate() {
     }
 }
 
-// Calcula el tiempo restante en milisegundos
-fun calculateTimeRemaining(targetDate: Long): Long {
-    return targetDate - System.currentTimeMillis()
-}
 
 @PreviewAllPhones
 @Composable

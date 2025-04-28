@@ -1,8 +1,11 @@
 package com.mirkwood.novenapp.presentation.screens.prayer
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,8 +31,13 @@ internal fun PrayerFooter() {
     var openDialog by remember { mutableStateOf(false) }
     var selectedPrayer by remember { mutableStateOf<MainPrayer?>(null) }
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .horizontalScroll(rememberScrollState()), // Agrega el scroll horizontal
+
         horizontalArrangement = Arrangement.SpaceBetween
+
     ) {
 
         list.forEach { prayer ->

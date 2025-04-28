@@ -11,15 +11,18 @@ android {
     defaultConfig {
         applicationId = "com.mirkwood.novenapp"
         minSdk = 28
-        versionCode = 1
-        versionName = "1.0"
+        targetSdk = 35 // <-- Agrega esta línea
+        versionCode = 5
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
     }
-
+    buildFeatures {
+        buildConfig = true
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -27,6 +30,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "VERSION_NAME", "\"${project.properties["VERSION_NAME"]}\"")
+
         }
     }
     compileOptions {
@@ -45,6 +50,7 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
 }
 
 dependencies {

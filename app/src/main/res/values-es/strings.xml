@@ -29,6 +29,24 @@
     <string name="consideracion">Consideración</string>
     <string name="oracion_a_jesus">Oración al niño Jesús</string>
     <string name="gozos">Gozos</string>
+    <string name="text_help_and_fb">Ayuda y Comentarios</string>
+    <string name="text_about_us">Acerca de nosotros</string>
+    <string name="text_rate_this_app">Calificar esta app</string>
+    <string name="text_unknown">Desconocida</string>
+    <string name="text_follow_us">Síguenos en las redes sociales</string>
+
+    <string name="about_us_outrageous_cat_section_title">Outrageous Cat</string>
+    <string name="about_us_outrageous_cat_slogan">Ingeniería de lo simple para resolver problemas de forma inteligente, práctica y eficiente. ¡Menos complicaciones!</string>
+    <string name="about_us_outrageous_cat_philosophy_text">Creemos que la simplicidad es la forma más elegante de resolver problemas. Nuestro propósito es transformar desafíos cotidianos en soluciones ágiles y fáciles de usar (nadie quiere manuales innecesarios).\n\nNacimos con la idea de simplificar lo complejo a través de aplicaciones inteligentes. Desde entonces, nos dedicamos a diseñar herramientas funcionales que son tan prácticas como intuitivas.\n\nTu opinión nos impulsa. Siempre buscamos mejorar para ofrecerte experiencias que hagan tu vida más simple y agradable.</string>
+    <string name="about_us_shuffle_friends_slogan">Sortear un amigo secreto debería ser simple. Con Shuffle Friends, lo es. Diviértete, elige y disfruta sin complicaciones.</string>
+    <string name="about_us_shuffle_friends_description_text">
+        NovenApp es el compañero perfecto para celebrar la tradicional Novena de Aguinaldos en Colombia. Diseñada para unir a familias y amigos durante la época navideña, nuestra app ofrece una experiencia cuidadosamente creada con oraciones, villancicos e interacciones que enriquecen esta hermosa tradición.
+        \nCon NovenApp, puedes seguir la novena de cada día con facilidad, cantar junto a villancicos  para darle más ritmo a tus celebraciones.
+        \nNuestra misión es mantener viva esta hermosa tradición en la era digital, haciéndola más accesible y atractiva para todos. Ya sea en casa, con amigos o en cualquier lugar, NovenApp te ayuda a conectarte con el espíritu navideño de una manera especial.
+        \n¡Únete a la celebración con NovenApp! 🎄✨
+    </string>
+    <string name="about_us_shuffle_friends_app_info_label">Información de la app</string>
+
     <string name="our_father">
         Padre nuestro que estás en el cielo, santificado sea tu Nombre;
         venga a nosotros tu reino; hágase tu voluntad en la tierra como en el cielo.

@@ -22,7 +22,7 @@ val LightPrimary = Color(0xFF6200EE)
 val LightOnPrimary = Color.White
 val LightBackground = Color(0xFFFAFAFA)
 val LightOnBackground = Color(0xFF212121)
-val LightSurface = Color.White
+val LightSurface = Color(0xFFF5F5F5)
 val LightOnSurface = Color(0xFF616161)
 
 // 🎨 Definición de colores para el tema oscuro

@@ -28,6 +28,23 @@
     <string name="consideracion">Reflection</string>
     <string name="oracion_a_jesus">Prayer to the Child Jesus</string>
     <string name="gozos">Jubilant Verses</string>
+    <string name="text_help_and_fb">Help and feedback</string>
+    <string name="text_about_us">About us</string>
+    <string name="text_rate_this_app">Rate this app</string>
+    <string name="text_unknown">Unknown</string>
+    <string name="text_follow_us">Follow us on social networks</string>
+
+
+    <string name="about_us_outrageous_cat_section_title">Outrageous Cat</string>
+    <string name="about_us_outrageous_cat_slogan"> The art of simplicity to solve problems intelligently, practically, and efficiently. Say goodbye to complications!</string>
+    <string name="about_us_outrageous_cat_philosophy_text">We believe simplicity is the most elegant way to solve problems. Our goal is to turn everyday challenges into agile, easy-to-use solutions (because who needs unnecessary manuals?).\n\nWe were born with the idea of simplifying the complex through smart apps. Since then, we\'ve focused on creating functional tools that are as intuitive as they are practical.\n\nYour feedback drives us. We\'re always striving to improve, offering experiences that make your life simpler and more enjoyable.</string>
+    <string name="about_us_shuffle_friends_slogan">Drawing a Secret Santa should be simple. With Shuffle Friends, it is. Have fun, choose, and enjoy without the hassle.</string>
+    <string name="about_us_shuffle_friends_description_text">NovenApp is the perfect companion for celebrating the traditional Novena de Aguinaldos in Colombia. Designed to bring families and friends together during the Christmas season, our app offers a beautifully crafted experience with prayers, villancicos, and interactive features that enhance this cherished tradition.
+            \nWith NovenApp, you can follow each day\'s novena with ease, sing along to classic villancicos to add rhythm to your celebrations.
+            \nOur mission is to keep this beautiful tradition alive in the digital age, making it more accessible and engaging for everyone. Whether at home, with friends, or on the go, NovenApp helps you connect with the Christmas spirit in a meaningful way.
+            \n¡Join us in celebrating this special time of year with NovenApp! 🎄✨</string>
+    <string name="about_us_shuffle_friends_app_info_label">App information:</string>
+
     <string name="our_father">
     Our Father, who art in heaven, hallowed be thy name; thy kingdom come; thy will be done on earth as it is in heaven.
     Give us this day our daily bread; and forgive us our trespasses, as we forgive those who trespass against us;

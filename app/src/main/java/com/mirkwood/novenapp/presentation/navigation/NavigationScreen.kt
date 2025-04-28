@@ -12,5 +12,6 @@ sealed class NavigationScreen(val route: String) {
         fun createRoute(songID: Int): String = "lyricsview/$songID"
         const val ARG_POSITION = "songID"
     }
+    object AboutUsScreen : NavigationScreen("about")
 
 }

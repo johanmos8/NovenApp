@@ -78,6 +78,9 @@ fun MyApp() {
                         }
                     },
                     modifier = Modifier,
+                    onAboutUsClick = {
+                        navController.navigate(NavigationScreen.AboutUsScreen.route)
+                    },
                     onLyricsClick = {
                         navController.navigate(NavigationScreen.LyricsScreen.route)
                     }

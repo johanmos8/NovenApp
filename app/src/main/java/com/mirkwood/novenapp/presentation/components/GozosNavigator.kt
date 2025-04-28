@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -26,19 +28,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.model.Gozo
+import com.mirkwood.novenapp.presentation.model.MainModule
+import com.mirkwood.novenapp.ui.theme.NovenAppTheme
 
 @Composable
-fun GozosNavigator(gozos: List<Gozo>) {
+fun GozosNavigator(gozos: List<Gozo>, modifier: Modifier = Modifier) {
     var currentIndex by remember { mutableStateOf(0) }
     val currentGozo: Gozo = gozos.get(currentIndex)
     val gozosSize = gozos.size
     if (gozos.isEmpty()) return
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -96,5 +102,26 @@ fun GozosNavigator(gozos: List<Gozo>) {
                 contentDescription = stringResource(R.string.text_ir_al_principio)
             )
         }
+    }
+}
+@PreviewAllPhones
+@Composable
+fun PreviewGozosNavigator() {
+    NovenAppTheme {
+        val gozos =
+            listOf(
+
+                Gozo(
+                    id = 1,
+                    texto = "¡Oh, Sapiencia suma del Dios soberano, que a infantil alcance te rebajas sacro! ¡Oh, Divino Niño, ven para enseñarnos la prudencia que hace verdaderos sabios! (Villancico 'Ven a nuestras almas')"
+                ),
+                Gozo(
+                    id = 2,
+                    texto = "¡Oh, Adonai potente que Moisés hablando, de Israel al pueblo diste los mandatos! ¡Ah, ven prontamente para rescatarnos, y que un niño débil muestre fuerte el brazo! (Villancico 'Ven a nuestras almas')"
+                ),
+            )
+        GozosNavigator(
+            gozos = gozos,
+        )
     }
 }

@@ -42,9 +42,7 @@ internal fun PrayerScreen(
 
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxSize()
+            modifier = Modifier.weight(1f)
         ) { page ->
 
             when (val selectedTab = prayers[page]) {

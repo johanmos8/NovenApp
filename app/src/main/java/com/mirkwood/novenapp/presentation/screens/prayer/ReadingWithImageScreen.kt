@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -52,7 +53,7 @@ internal fun ReadingWithImageScreen(
 
     Box(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
 
     ) {
         LazyColumn(
@@ -92,7 +93,9 @@ internal fun ReadingWithImageScreen(
                         .background(MaterialTheme.colorScheme.background)
                         .padding(16.dp)
                 ) {
-                    Column {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text(
                             text = title,
                             fontWeight = FontWeight.Bold,

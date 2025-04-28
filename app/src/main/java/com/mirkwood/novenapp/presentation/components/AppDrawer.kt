@@ -1,5 +1,8 @@
 package com.mirkwood.novenapp.presentation.components
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,9 +20,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +40,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -51,12 +60,14 @@ internal fun AppDrawer(
     modifier: Modifier = Modifier,
     onOptionClick: (NovenaAction) -> Unit,
     onLyricsClick: () -> Unit,
+    onAboutUsClick: () -> Unit,
     closeDrawer: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     val days =
         (1..9).map { stringResource(R.string.text_dia, it) } // Genera los títulos de los días
 
-    Column(modifier=modifier) {
+    Column(modifier = modifier.verticalScroll(rememberScrollState())) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         DrawerHeader()
         DividerItem()
@@ -81,6 +92,27 @@ internal fun AppDrawer(
                 closeDrawer()
             }
         )
+        DividerItem(modifier = Modifier.padding(horizontal = 28.dp))
+        DrawerItemHeader(stringResource(R.string.text_help_and_fb))
+        FeedbackItem(
+            text = stringResource(R.string.text_about_us),
+            selected = false,
+            {
+                onAboutUsClick()
+                closeDrawer()
+            },
+            Icons.Default.Info
+        )
+        FeedbackItem(
+            text = stringResource(R.string.text_rate_this_app),
+            selected = false,
+            {
+                openPlayStore(context)
+                closeDrawer()
+            },
+            Icons.Default.Star
+        )
+        CopyRightFooter()
     }
 }
 
@@ -164,6 +196,52 @@ private fun VillancicoItem(text: String, selected: Boolean, onOptionClicked: () 
 }
 
 @Composable
+private fun FeedbackItem(
+    text: String,
+    selected: Boolean,
+    onOptionClicked: () -> Unit,
+    icon: ImageVector
+) {
+    val background = if (selected) {
+        Modifier.background(MaterialTheme.colorScheme.primaryContainer)
+    } else {
+        Modifier
+    }
+    Row(
+        modifier = Modifier
+            .height(56.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp)
+            .clip(CircleShape)
+            .then(background)
+            .clickable(onClick = { onOptionClicked() }),
+        verticalAlignment = CenterVertically
+    ) {
+        val iconTint = if (selected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        }
+        Icon(
+            imageVector = icon,
+            tint = iconTint,
+            modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 16.dp),
+            contentDescription = null
+        )
+        Text(
+            text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (selected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            },
+            modifier = Modifier.padding(start = 12.dp)
+        )
+    }
+}
+
+@Composable
 fun DrawerHeader(modifier: Modifier = Modifier) {
     Column(
         verticalArrangement = Arrangement.Center,
@@ -217,15 +295,18 @@ private fun DrawerItemHeader(text: String) {
 fun PreviewAppDrawer() {
     NovenAppTheme {
 
-        /*AppDrawer(
-            onLyricsClick = {},
-            onOptionClick = {},
-            closeDrawer = {}
-        )*/
         AppDrawer(
             onLyricsClick = {},
             onOptionClick = {},
+            onAboutUsClick = {},
             closeDrawer = {}
         )
     }
+}
+
+fun openPlayStore(context: Context) {
+    val uri = Uri.parse("market://details?id=${context.packageName}")
+    val intent = Intent(Intent.ACTION_VIEW, uri)
+    intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+    context.startActivity(intent)
 }

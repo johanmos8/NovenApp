@@ -7,12 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -36,6 +30,7 @@ import com.mirkwood.novenapp.presentation.screens.prayer.PrayerScreen
 @Composable
 fun AppNavHost(
     navController: NavHostController = rememberNavController(),
+    onSongTitleUpdated: (String) -> Unit
 ) {
     val mainViewModel = MainViewModel()
     val state by mainViewModel.state.collectAsState()
@@ -78,7 +73,8 @@ fun AppNavHost(
                     Prayer.WithImage(
                         content.general.oracion_todos_los_dias,
                         R.drawable.pesebre,
-                        stringResource(NovenaTab.OracionTodosLosDias.titleResId)
+                        stringResource(NovenaTab.OracionTodosLosDias.titleResId),
+                        true
                     ),
                     Prayer.WithImage(
                         content.general.oracion_virgen_maria,
@@ -145,6 +141,7 @@ fun AppNavHost(
             Log.d("Test", "selectedSong: $selectedSong")
 
             if (selectedSong != null) {
+                onSongTitleUpdated(selectedSong!!.title)
                 LyricsScreen(
                     songTitle = selectedSong!!.title,
                     lyrics = selectedSong!!.lyrics,
@@ -157,7 +154,6 @@ fun AppNavHost(
         composable(NavigationScreen.AboutUsScreen.route) {
             AboutUsScreen(
                 modifier = Modifier.fillMaxSize(),
-                onBack = { navController.popBackStack() }
             )
         }
 

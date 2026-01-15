@@ -71,4 +71,7 @@
         - Oh Divino Niño Jesús
         - (Todos) Bendecinos con amor
     </string>
+    <string name="btn_back">Atras</string>
+    <string name="villancicos">Villancicos</string>
+    <string name="menu">Menu</string>
 </resources>

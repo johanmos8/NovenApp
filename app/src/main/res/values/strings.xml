@@ -66,6 +66,9 @@
     - Oh Divine Child Jesus
     - (All) Bless us with love
     </string>
+    <string name="btn_back">Back</string>
+    <string name="villancicos">Villancicos</string>
+    <string name="menu">Menu</string>
 
 
 </resources>

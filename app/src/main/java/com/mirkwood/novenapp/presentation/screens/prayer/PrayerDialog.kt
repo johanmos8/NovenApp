@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.model.MainPrayer
@@ -28,7 +29,7 @@ fun PrayerDialog(
         text = {
             Box(modifier = Modifier.wrapContentHeight()) {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    Text(text = stringResource(prayer.contentRes))
+                    Text(text = stringResource(prayer.contentRes), fontSize = 18.sp)
                 }
             }
         },

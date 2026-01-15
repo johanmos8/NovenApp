@@ -11,9 +11,8 @@ android {
     defaultConfig {
         applicationId = "com.mirkwood.novenapp"
         minSdk = 28
-        targetSdk = 35 // <-- Agrega esta línea
-        versionCode = 5
-        versionName = "1.1"
+        targetSdk = 35
+        versionCode = 10
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -32,6 +31,9 @@ android {
             )
             buildConfigField("String", "VERSION_NAME", "\"${project.properties["VERSION_NAME"]}\"")
 
+        }
+        debug {
+            buildConfigField("String", "VERSION_NAME", "\"${project.properties["VERSION_NAME"]}\"")
         }
     }
     compileOptions {

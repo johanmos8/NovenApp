@@ -11,7 +11,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -76,9 +75,8 @@ fun NovenAppTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // Cambiar el color de la status bar al primary o el que prefieras
-            window.statusBarColor = colorScheme.primary.toArgb()
-            // Cambiar el color de los iconos (oscuros si tema claro)
+            // Edge-to-edge is enforced from API 35+ (targetSdk 36), so window.statusBarColor
+            // is ignored there; only the icon appearance can still be controlled.
             val insetsController = WindowCompat.getInsetsController(window, view)
             insetsController.isAppearanceLightStatusBars = !darkTheme
         }

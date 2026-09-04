@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.mirkwood.novenapp"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.mirkwood.novenapp"
         minSdk = 28
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 10
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

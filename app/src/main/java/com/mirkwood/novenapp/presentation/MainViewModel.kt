@@ -25,8 +25,14 @@ internal class MainViewModel : ViewModel() {
     }
 
     fun getContent(context: Context): Novena {
-        val json = loadJSONFromAsset(context, "content.json")
+        val json = loadJSONFromAsset(context, contentFileName(context))
         return Gson().fromJson(json, Novena::class.java)
+    }
+
+    private fun contentFileName(context: Context): String {
+        // assets/ isn't locale-qualified like res/values-xx, so the locale has to be resolved manually.
+        val language = context.resources.configuration.locales[0].language
+        return if (language == "en") "content_en.json" else "content_es.json"
     }
 
     private fun loadJSONFromAsset(context: Context, fileName: String): String? {

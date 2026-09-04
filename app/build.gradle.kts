@@ -12,7 +12,7 @@ android {
         applicationId = "com.mirkwood.novenapp"
         minSdk = 28
         targetSdk = 36
-        versionCode = 10
+        versionCode = 11
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

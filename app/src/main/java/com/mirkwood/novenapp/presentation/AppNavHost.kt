@@ -9,16 +9,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.mirkwood.novenapp.R
-import com.mirkwood.novenapp.presentation.model.NovenaTab
-import com.mirkwood.novenapp.presentation.model.Prayer
+import com.mirkwood.novenapp.presentation.mapper.buildDevotionalDayPrayers
 import com.mirkwood.novenapp.presentation.navigation.NavigationScreen
 import com.mirkwood.novenapp.presentation.screens.aboutus.AboutUsScreen
 import com.mirkwood.novenapp.presentation.screens.home.HomeScreen
@@ -26,15 +23,16 @@ import com.mirkwood.novenapp.presentation.screens.lyrics.LyricsScreen
 import com.mirkwood.novenapp.presentation.screens.lyrics.LyricsViewModel
 import com.mirkwood.novenapp.presentation.screens.lyrics.SongListScreen
 import com.mirkwood.novenapp.presentation.screens.prayer.PrayerScreen
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun AppNavHost(
+internal fun AppNavHost(
     navController: NavHostController = rememberNavController(),
+    mainViewModel: MainViewModel = koinViewModel(),
     onSongTitleUpdated: (String) -> Unit
 ) {
-    val mainViewModel = MainViewModel()
     val state by mainViewModel.state.collectAsState()
-    val lyricsViewModel = LyricsViewModel()
+    val lyricsViewModel: LyricsViewModel = koinViewModel()
     NavHost(
         navController = navController,
         startDestination = NavigationScreen.HomeScreen.route,
@@ -43,65 +41,38 @@ fun AppNavHost(
         composable(NavigationScreen.HomeScreen.route) {
             HomeScreen(
                 viewState = state,
+                devotional = mainViewModel.activeDevotional,
                 onEvent = { event -> mainViewModel.onAction(event, navController) }
             )
         }
         composable(
             NavigationScreen.DayScreen.route,
-            arguments = listOf(navArgument("position") {
-                type = NavType.IntType
-            })
-        ) { it ->
+            arguments = listOf(
+                navArgument(NavigationScreen.DayScreen.ARG_DEVOTIONAL_ID) {
+                    type = NavType.StringType
+                },
+                navArgument(NavigationScreen.DayScreen.ARG_POSITION) {
+                    type = NavType.IntType
+                }
+            )
+        ) { backStackEntry ->
 
-            val day = it.arguments?.getInt("position") ?: -1
+            val day = backStackEntry.arguments?.getInt(NavigationScreen.DayScreen.ARG_POSITION) ?: -1
 
             val novenaDay = if (day != -1) {
                 day
             } else {
-                mainViewModel.getNovenaDay()
+                mainViewModel.refreshCurrentDay()
             }
             Log.d("Test", "currentDay: $novenaDay")
             novenaDay?.let { currentDay ->
 
-                val content = mainViewModel.getContent(LocalContext.current)
-                val list = listOf(
-                    Prayer.WithImage(
-                        content.dias[currentDay - 1].reflexion,
-                        R.drawable.novena,
-                        stringResource(R.string.text_consideration, currentDay)
-                    ),
-                    Prayer.WithImage(
-                        content.general.oracion_todos_los_dias,
-                        R.drawable.pesebre,
-                        stringResource(NovenaTab.OracionTodosLosDias.titleResId),
-                        true
-                    ),
-                    Prayer.WithImage(
-                        content.general.oracion_virgen_maria,
-                        R.drawable.virgen_maria,
-                        stringResource(NovenaTab.OracionALaVirgen.titleResId),
-                        true
-                    ),
-                    Prayer.WithImage(
-                        content.general.oracion_san_jose,
-                        R.drawable.san_jose,
-                        stringResource(NovenaTab.OracionSanJose.titleResId),
-                        true
-                    ),
-                    Prayer.AllGozos(
-                        content.gozos,
-                        R.drawable.novena_music,
-                        stringResource(NovenaTab.Gozos.titleResId)
-                    ),
-                    Prayer.WithImage(
-                        content.general.oracion_niño_jesus,
-                        R.drawable.baby_jesus,
-                        stringResource(NovenaTab.OracionAJesus.titleResId),
-                        true
-                    ),
-
-                    )
-                PrayerScreen(list)
+                val language = LocalContext.current.resources.configuration.locales[0].language
+                val content = mainViewModel.getContent(language)
+                content?.let {
+                    val list = buildDevotionalDayPrayers(it, mainViewModel.activeDevotional, currentDay)
+                    PrayerScreen(list)
+                }
             }
         }
         composable(NavigationScreen.LyricsScreen.route) {

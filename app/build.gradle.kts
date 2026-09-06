@@ -82,5 +82,8 @@ dependencies {
     //Lottie
     implementation(libs.lottie)
     implementation(libs.lottie.compose)
+    //Dependency injection
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
     implementation(project(":compose-preview"))
 }

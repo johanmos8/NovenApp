@@ -1,64 +1,42 @@
 package com.mirkwood.novenapp.presentation
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
-import com.google.gson.Gson
+import com.mirkwood.novenapp.data.devotional.DevotionalRepository
 import com.mirkwood.novenapp.presentation.model.Novena
+import com.mirkwood.novenapp.presentation.model.devotional.DevotionalMeta
 import com.mirkwood.novenapp.presentation.navigation.NavigationScreen
 import com.mirkwood.novenapp.presentation.state.NovenaViewState
-import com.mirkwood.novenapp.presentation.util.INITIAL_DAY
-import com.mirkwood.novenapp.presentation.util.LAST_DAY
-import com.mirkwood.novenapp.presentation.util.TARGET_MONTH
+import com.mirkwood.novenapp.presentation.util.Util
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.time.LocalDate
 
-internal class MainViewModel : ViewModel() {
+/**
+ * Drives whichever devotional is active. Today that's always [DevotionalRepository]'s
+ * first catalog entry (the Novena de Aguinaldos) — [activeDevotionalId] exists so a
+ * future "pick a devotional" screen has somewhere to plug in without touching this
+ * class's public shape again.
+ */
+internal class MainViewModel(
+    private val repository: DevotionalRepository,
+    private val activeDevotionalId: String = repository.getCatalog().first().id
+) : ViewModel() {
 
     private val _state = MutableStateFlow(NovenaViewState())
     val state: StateFlow<NovenaViewState> = _state.asStateFlow()
 
+    val activeDevotional: DevotionalMeta
+        get() = repository.getDevotional(activeDevotionalId)
+
     init {
-        getNovenaDay()
+        refreshCurrentDay()
     }
 
-    fun getContent(context: Context): Novena {
-        val json = loadJSONFromAsset(context, contentFileName(context))
-        return Gson().fromJson(json, Novena::class.java)
-    }
+    fun getContent(language: String): Novena? = repository.loadContent(activeDevotionalId, language)
 
-    private fun contentFileName(context: Context): String {
-        // assets/ isn't locale-qualified like res/values-xx, so the locale has to be resolved manually.
-        val language = context.resources.configuration.locales[0].language
-        return if (language == "en") "content_en.json" else "content_es.json"
-    }
-
-    private fun loadJSONFromAsset(context: Context, fileName: String): String? {
-        return try {
-            val inputStream = context.assets.open(fileName)
-            val size = inputStream.available()
-            val buffer = ByteArray(size)
-            inputStream.read(buffer)
-            inputStream.close()
-            String(buffer, Charsets.UTF_8)
-        } catch (ex: Exception) {
-
-            null
-        }
-    }
-
-    fun getNovenaDay(): Int? {
-        val today = LocalDate.now()
-        val start = LocalDate.of(today.year, TARGET_MONTH, INITIAL_DAY)
-        val end = LocalDate.of(today.year, TARGET_MONTH, LAST_DAY)
-        val value = if (today in start..end) {
-            // Calculamos el día basado en el rango
-            (today.dayOfMonth - start.dayOfMonth + 1)
-        } else {
-            null // Retornamos null si la fecha no está en el rango
-        }
+    fun refreshCurrentDay(): Int? {
+        val value = Util.resolveCurrentDay(activeDevotional.schedule)
         _state.value = _state.value.copy(currentDay = value)
         return value
     }
@@ -66,15 +44,14 @@ internal class MainViewModel : ViewModel() {
     fun onAction(action: NovenaAction, navController: NavController) {
         when (action) {
             NovenaAction.GoHome -> {
-                navController.navigate(NavigationScreen.HomeScreen.route) // Regresar a Home
+                navController.navigate(NavigationScreen.HomeScreen.route)
             }
 
             is NovenaAction.GoToDay -> {
-                navController.navigate(NavigationScreen.DayScreen.createRoute(action.selectedDay))
-
+                navController.navigate(
+                    NavigationScreen.DayScreen.createRoute(activeDevotionalId, action.selectedDay)
+                )
             }
         }
     }
-
-
 }

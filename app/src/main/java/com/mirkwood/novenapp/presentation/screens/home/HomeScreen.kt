@@ -21,18 +21,17 @@ import com.mirkwood.novenapp.presentation.NovenaAction
 import com.mirkwood.novenapp.presentation.components.CountdownToDate
 import com.mirkwood.novenapp.presentation.components.GoToDayButton
 import com.mirkwood.novenapp.presentation.components.MainTitle
+import com.mirkwood.novenapp.presentation.model.devotional.DevotionalMeta
 import com.mirkwood.novenapp.presentation.state.NovenaViewState
-import com.mirkwood.novenapp.presentation.util.TARGET_DAY
-import com.mirkwood.novenapp.presentation.util.TARGET_MONTH
-import java.time.LocalDate
+import com.mirkwood.novenapp.presentation.util.Util
 
 @Composable
 internal fun HomeScreen(
     viewState: NovenaViewState,
+    devotional: DevotionalMeta,
     onEvent: (NovenaAction) -> Unit
 ) {
-    val currentDate = remember { LocalDate.now() }
-    val isChristmas = currentDate.monthValue == TARGET_MONTH && currentDate.dayOfMonth == TARGET_DAY
+    val isChristmas = remember(devotional) { Util.isCelebrationDay(devotional.schedule) }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -52,7 +51,7 @@ internal fun HomeScreen(
         ) {
             if (!isChristmas) {
                 MainTitle()
-                CountdownToDate()
+                CountdownToDate(schedule = devotional.schedule)
             }
             viewState.currentDay?.let {
                 GoToDayButton(

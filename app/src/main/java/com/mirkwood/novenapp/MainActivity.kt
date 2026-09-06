@@ -47,6 +47,7 @@ import com.mirkwood.novenapp.presentation.components.AppDrawer
 import com.mirkwood.novenapp.presentation.navigation.NavigationScreen
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,7 +69,7 @@ fun MyApp() {
         currentNavBackStackEntry?.destination?.route ?: NavigationScreen.HomeScreen.route
     val drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
-    val viewModel: MainViewModel = MainViewModel()
+    val viewModel: MainViewModel = koinViewModel()
     var currentSongTitle by remember { mutableStateOf("Villancicos") }
 
     NovenAppTheme {
@@ -149,9 +150,13 @@ fun MyApp() {
                             onBackClick = { navController.popBackStack() }
                         )
                     }
-                    AppNavHost(navController, onSongTitleUpdated = { newTitle ->
-                        currentSongTitle = newTitle
-                    })
+                    AppNavHost(
+                        navController = navController,
+                        mainViewModel = viewModel,
+                        onSongTitleUpdated = { newTitle ->
+                            currentSongTitle = newTitle
+                        }
+                    )
                 }
             }
         }

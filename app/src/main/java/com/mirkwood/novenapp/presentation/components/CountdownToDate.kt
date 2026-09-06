@@ -22,22 +22,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.R
-import com.mirkwood.novenapp.presentation.util.Util.calculateTimeRemaining
+import com.mirkwood.novenapp.presentation.model.devotional.DevotionalCatalog
+import com.mirkwood.novenapp.presentation.model.devotional.DevotionalSchedule
+import com.mirkwood.novenapp.presentation.util.Util
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
 import kotlinx.coroutines.delay
-import java.time.LocalDate
-import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 
 @Composable
-fun CountdownToDate() {
+fun CountdownToDate(schedule: DevotionalSchedule) {
 
-    var remainingTime by remember { mutableStateOf(calculateTimeRemaining()) }
+    var remainingTime by remember(schedule) { mutableStateOf(Util.calculateTimeRemaining(schedule)) }
 
     LaunchedEffect(key1 = remainingTime) {
         while (remainingTime > 0) {
             delay(1000L) // Espera un segundo
-            remainingTime = calculateTimeRemaining()
+            remainingTime = Util.calculateTimeRemaining(schedule)
         }
     }
 
@@ -87,7 +87,7 @@ fun CountdownPreview() {
             color = MaterialTheme.colorScheme.background // Usa color del theme
 
         ) {
-            CountdownToDate()
+            CountdownToDate(schedule = DevotionalCatalog.default.schedule)
         }
     }
 }

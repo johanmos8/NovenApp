@@ -1,74 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">NovenApp</string>
-    <string name="novena_aguinaldos_title">Novena of Aguinaldos</string>
-    <string name="text_ir_al_principio">Go to the beginning</string>
-    <string name="text_siguiente">Next</string>
-    <string name="text_anterior">Previous</string>
-    <string name="text_ir_a">Go to day %s</string>
-    <string name="text_regresa">Back</string>
-    <string name="text_ir_a_inicio">Home</string>
-    <string name="text_consideration">Consideration for day %d</string>
-    <string name="text_dia">Day %d</string>
-    <string name="text_tiempo_llegado">The time has come!</string>
-    <string name="text_navidad_en">Christmas in:</string>
-    <string name="text_navidad_en_yy_mm_dd">"%d days, %d hours, %d minutes, %d seconds"</string>
+    <string name="novena_aguinaldos_title">Novena de Aguinaldos</string>
+    <string name="text_ir_a">Ir al día %s</string>
+    <string name="text_consideration">Consideración día %d</string>
+    <string name="text_dia">Día %d</string>
+    <string name="text_dia_locked">Día %d, bloqueado</string>
+    <string name="text_navidad_en">Navidad en:</string>
+    <string name="text_navidad_en_yy_mm_dd">"%d días, %d horas, %d minutos, %d segundos"</string>
     <string name="gozos_title">Gozos</string>
-    <string name="our_father_title">Our Father</string>
-    <string name="hail_mary_title">Hail Mary</string>
-    <string name="glory_be_title">Glory Be</string>
-    <string name="divine_child_title">Divine Child</string>
-    <string name="text_music">Music</string>
-    <string name="text_novena_days">"Novena days"</string>
-    <string name="text_villancicos">Christmas carol"</string>
-    <string name="close">Close</string>
-    <string name="text_lyrics">Sing Along with Lyrics</string>
-    <string name="oracion_todos_los_dias">Prayer for Every Day</string>
-    <string name="oracion_a_la_virgen">Prayer to the Virgin</string>
-    <string name="oracion_a_san_jose">Prayer to Saint Joseph</string>
-    <string name="consideracion">Reflection</string>
-    <string name="oracion_a_jesus">Prayer to the Child Jesus</string>
-    <string name="gozos">Jubilant Verses</string>
-    <string name="text_help_and_fb">Help and feedback</string>
-    <string name="text_about_us">About us</string>
-    <string name="text_rate_this_app">Rate this app</string>
-    <string name="text_unknown">Unknown</string>
-    <string name="text_follow_us">Follow us on social networks</string>
-
+    <string name="our_father_title">Padre Nuestro</string>
+    <string name="hail_mary_title">Ave María</string>
+    <string name="glory_be_title">Gloria</string>
+    <string name="divine_child_title">Divino Niño</string>
+    <string name="text_music">Música</string>
+    <string name="close">Cerrar</string>
+    <string name="text_lyrics">Letras para Cantar</string>
+    <string name="oracion_todos_los_dias">Oración para todos los días</string>
+    <string name="oracion_a_la_virgen">Oración a la Virgen</string>
+    <string name="oracion_a_san_jose">Oración a San José</string>
+    <string name="consideracion">Consideración</string>
+    <string name="oracion_a_jesus">Oración al niño Jesús</string>
+    <string name="gozos">Gozos</string>
+    <string name="text_about_us">Acerca de nosotros</string>
+    <string name="text_rate_this_app">Calificar esta app</string>
+    <string name="text_unknown">Desconocida</string>
+    <string name="bottom_nav_novena">Novena</string>
+    <string name="bottom_nav_villancicos">Villancicos</string>
+    <string name="bottom_nav_more">Más</string>
 
     <string name="about_us_outrageous_cat_section_title">Outrageous Cat</string>
-    <string name="about_us_outrageous_cat_slogan"> The art of simplicity to solve problems intelligently, practically, and efficiently. Say goodbye to complications!</string>
-    <string name="about_us_outrageous_cat_philosophy_text">We believe simplicity is the most elegant way to solve problems. Our goal is to turn everyday challenges into agile, easy-to-use solutions (because who needs unnecessary manuals?).\n\nWe were born with the idea of simplifying the complex through smart apps. Since then, we\'ve focused on creating functional tools that are as intuitive as they are practical.\n\nYour feedback drives us. We\'re always striving to improve, offering experiences that make your life simpler and more enjoyable.</string>
-    <string name="about_us_shuffle_friends_slogan">Drawing a Secret Santa should be simple. With Shuffle Friends, it is. Have fun, choose, and enjoy without the hassle.</string>
-    <string name="about_us_shuffle_friends_description_text">NovenApp is the perfect companion for celebrating the traditional Novena de Aguinaldos in Colombia. Designed to bring families and friends together during the Christmas season, our app offers a beautifully crafted experience with prayers, villancicos, and interactive features that enhance this cherished tradition.
-            \nWith NovenApp, you can follow each day\'s novena with ease, sing along to classic villancicos to add rhythm to your celebrations.
-            \nOur mission is to keep this beautiful tradition alive in the digital age, making it more accessible and engaging for everyone. Whether at home, with friends, or on the go, NovenApp helps you connect with the Christmas spirit in a meaningful way.
-            \n¡Join us in celebrating this special time of year with NovenApp! 🎄✨</string>
-    <string name="about_us_shuffle_friends_app_info_label">App information:</string>
+    <string name="about_us_outrageous_cat_slogan">Ingeniería de lo simple para resolver problemas de forma inteligente, práctica y eficiente. ¡Menos complicaciones!</string>
+    <string name="about_us_outrageous_cat_philosophy_text">Creemos que la simplicidad es la forma más elegante de resolver problemas. Nuestro propósito es transformar desafíos cotidianos en soluciones ágiles y fáciles de usar (nadie quiere manuales innecesarios).\n\nNacimos con la idea de simplificar lo complejo a través de aplicaciones inteligentes. Desde entonces, nos dedicamos a diseñar herramientas funcionales que son tan prácticas como intuitivas.\n\nTu opinión nos impulsa. Siempre buscamos mejorar para ofrecerte experiencias que hagan tu vida más simple y agradable.</string>
+    <string name="about_us_made_by_label">Hecho por</string>
+    <string name="about_us_app_description_text">
+        NovenApp es el compañero perfecto para celebrar la tradicional Novena de Aguinaldos en Colombia. Diseñada para unir a familias y amigos durante la época navideña, nuestra app ofrece una experiencia cuidadosamente creada con oraciones, villancicos e interacciones que enriquecen esta hermosa tradición.
+        \nCon NovenApp, puedes seguir la novena de cada día con facilidad, cantar junto a villancicos  para darle más ritmo a tus celebraciones.
+        \nNuestra misión es mantener viva esta hermosa tradición en la era digital, haciéndola más accesible y atractiva para todos. Ya sea en casa, con amigos o en cualquier lugar, NovenApp te ayuda a conectarte con el espíritu navideño de una manera especial.
+        \n¡Únete a la celebración con NovenApp! 🎄✨
+    </string>
+    <string name="about_us_app_info_label">Información de la app</string>
+
+    <string name="content_description_app_logo">Logotipo de NovenApp</string>
+    <string name="content_description_studio_logo">Logotipo de Outrageous Cat</string>
+    <string name="content_description_toggle_music_on">Reproducir música de fondo</string>
+    <string name="content_description_toggle_music_off">Pausar música de fondo</string>
+
+    <string name="notification_channel_name">Recordatorio diario de la novena</string>
+    <string name="notification_channel_description">Te avisa qué día de la Novena de Aguinaldos es, del 16 al 24 de diciembre.</string>
+    <string name="notification_daily_reminder_text">Hoy es el Día %d de la novena. Toca para rezarlo.</string>
+
+    <string name="widget_description">Muestra el día de la novena o la cuenta regresiva a la Navidad.</string>
+    <string name="widget_today_label">Día %d</string>
+    <string name="widget_countdown_label">Faltan %d días</string>
+
+    <string name="error_devotional_content_unavailable">Este contenido no está disponible en este momento.</string>
+    <string name="day_strip_locked_message">Este día aún no está disponible</string>
+    <string name="day_preview_banner">Estás viendo un adelanto: este día aún no comienza</string>
+    <string name="home_explore_all_days">Explora cualquier día de la novena</string>
+    <string name="mark_day_as_prayed">Marcar Día %d como rezado</string>
+    <string name="day_marked_as_prayed">Día %d rezado</string>
+    <string name="gozo_mark_read">Marcar verso %d como leído</string>
+    <string name="gozo_marked_read">Verso %d leído</string>
 
     <string name="our_father">
-    Our Father, who art in heaven, hallowed be thy name; thy kingdom come; thy will be done on earth as it is in heaven.
-    Give us this day our daily bread; and forgive us our trespasses, as we forgive those who trespass against us;
-    and lead us not into temptation, but deliver us from evil. Amen.
+        Padre nuestro que estás en el cielo, santificado sea tu Nombre;
+        venga a nosotros tu reino; hágase tu voluntad en la tierra como en el cielo.
+        Danos hoy nuestro pan de cada día; perdona nuestras ofensas,
+        como también nosotros perdonamos a los que nos ofenden;
+        no nos dejes caer en la tentación, y líbranos del mal. Amén.
     </string>
 
     <string name="hail_mary">
-    Hail Mary, full of grace, the Lord is with thee. Blessed art thou among women,
-    and blessed is the fruit of thy womb, Jesus. Holy Mary, Mother of God, pray for us sinners,
-    now and at the hour of our death. Amen.
+        Dios te salve, María, llena eres de gracia, el Señor es contigo.
+        Bendita tú eres entre todas las mujeres, y bendito es el fruto de tu vientre, Jesús.
+        Santa María, Madre de Dios, ruega por nosotros, pecadores,
+        ahora y en la hora de nuestra muerte. Amén.
     </string>
 
     <string name="glory_be">
-    Glory be to the Father, and to the Son, and to the Holy Spirit.
-    As it was in the beginning, is now, and ever shall be, world without end. Amen.
+        Gloria al Padre, y al Hijo, y al Espíritu Santo.
+        Como era en el principio, ahora y siempre, por los siglos de los siglos. Amén.
     </string>
 
     <string name="divine_child">
-    - Oh Divine Child Jesus
-    - (All) Bless us with love
+        - Oh Divino Niño Jesús
+        - (Todos) Bendecinos con amor
     </string>
-    <string name="btn_back">Back</string>
+    <string name="btn_back">Atras</string>
     <string name="villancicos">Villancicos</string>
     <string name="menu">Menu</string>
-
-
 </resources>

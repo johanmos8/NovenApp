@@ -2,4 +2,10 @@
 <resources>
 
     <style name="Theme.NovenApp" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.NovenApp.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.NovenApp</item>
+    </style>
 </resources>

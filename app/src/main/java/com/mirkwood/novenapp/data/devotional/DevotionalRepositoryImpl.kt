@@ -1,10 +1,14 @@
 package com.mirkwood.novenapp.data.devotional
 
 import android.content.Context
+import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.mirkwood.novenapp.presentation.model.Novena
 import com.mirkwood.novenapp.presentation.model.devotional.DevotionalCatalog
 import com.mirkwood.novenapp.presentation.model.devotional.DevotionalMeta
+
+private const val TAG = "DevotionalRepository"
 
 class DevotionalRepositoryImpl(context: Context) : DevotionalRepository {
 
@@ -18,12 +22,18 @@ class DevotionalRepositoryImpl(context: Context) : DevotionalRepository {
         val meta = getDevotional(devotionalId)
         val fileName = if (language == "en") meta.contentFileEn else meta.contentFileEs
         val json = readAsset(fileName) ?: return null
-        return Gson().fromJson(json, Novena::class.java)
+        return try {
+            Gson().fromJson(json, Novena::class.java)
+        } catch (ex: JsonSyntaxException) {
+            Log.e(TAG, "Malformed content asset \"$fileName\" for devotional \"$devotionalId\"", ex)
+            null
+        }
     }
 
     private fun readAsset(fileName: String): String? = try {
         appContext.assets.open(fileName).bufferedReader().use { it.readText() }
     } catch (ex: Exception) {
+        Log.e(TAG, "Failed to read content asset \"$fileName\"", ex)
         null
     }
 }

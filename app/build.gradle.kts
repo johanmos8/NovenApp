@@ -12,7 +12,7 @@ android {
         applicationId = "com.mirkwood.novenapp"
         minSdk = 28
         targetSdk = 36
-        versionCode = 11
+        versionCode = 12
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.ui.text.android)
     implementation(libs.androidx.runtime.livedata)
@@ -85,5 +86,11 @@ dependencies {
     //Dependency injection
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+    //Daily reminder / widget / splash
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.glance.appwidget)
+    //Local day-completion tracking
+    implementation(libs.androidx.datastore.preferences)
     implementation(project(":compose-preview"))
 }

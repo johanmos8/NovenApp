@@ -3,6 +3,7 @@ package com.mirkwood.novenapp.presentation.util
 import com.mirkwood.novenapp.presentation.model.devotional.DevotionalSchedule
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 /**
  * Date math for a [DevotionalSchedule], used to be hardcoded Christmas-only constants
@@ -11,16 +12,46 @@ import java.time.ZoneId
  */
 object Util {
 
+    /**
+     * Tries the range anchored to the previous year first, then today's year, so a
+     * range that wraps into January (e.g. Dec 28 - Jan 5) resolves correctly on
+     * either side of the New Year, and computes the day index by elapsed days
+     * (not day-of-month subtraction) so a range spanning two months works too.
+     */
     fun resolveCurrentDay(schedule: DevotionalSchedule, today: LocalDate = LocalDate.now()): Int? {
         if (schedule !is DevotionalSchedule.FixedRange) return null
-        val start = LocalDate.of(today.year, schedule.startMonth, schedule.startDay)
-        val end = LocalDate.of(today.year, schedule.endMonth, schedule.endDay)
-        return if (today in start..end) today.dayOfMonth - start.dayOfMonth + 1 else null
+        for (startYear in intArrayOf(today.year - 1, today.year)) {
+            val start = LocalDate.of(startYear, schedule.startMonth, schedule.startDay)
+            var end = LocalDate.of(startYear, schedule.endMonth, schedule.endDay)
+            if (end.isBefore(start)) end = end.plusYears(1)
+            if (today in start..end) {
+                return (ChronoUnit.DAYS.between(start, today) + 1).toInt()
+            }
+        }
+        return null
     }
 
     fun isCelebrationDay(schedule: DevotionalSchedule, today: LocalDate = LocalDate.now()): Boolean {
         if (schedule !is DevotionalSchedule.FixedRange) return false
         return today.monthValue == schedule.celebrationMonth && today.dayOfMonth == schedule.celebrationDay
+    }
+
+    /**
+     * The next date on/after [from] that falls within [schedule]'s active range - `from`
+     * itself if it's already in range, otherwise this year's (or, if `from` is already
+     * past this year's range, next year's) start date. Shared by the daily reminder
+     * scheduler (to find when to fire next) and the home-screen widget (to show a
+     * countdown when the devotional isn't active yet).
+     */
+    fun resolveNextOccurrence(schedule: DevotionalSchedule, from: LocalDate = LocalDate.now()): LocalDate? {
+        if (schedule !is DevotionalSchedule.FixedRange) return null
+        val startThisYear = LocalDate.of(from.year, schedule.startMonth, schedule.startDay)
+        val endThisYear = LocalDate.of(from.year, schedule.endMonth, schedule.endDay)
+        return when {
+            from.isAfter(endThisYear) -> LocalDate.of(from.year + 1, schedule.startMonth, schedule.startDay)
+            from.isBefore(startThisYear) -> startThisYear
+            else -> from
+        }
     }
 
     fun calculateTimeRemaining(schedule: DevotionalSchedule, now: LocalDate = LocalDate.now()): Long {

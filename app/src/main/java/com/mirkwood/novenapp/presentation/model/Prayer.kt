@@ -16,8 +16,16 @@ sealed class Prayer {
     ) :
         Prayer()
 
-    data class AllGozos(val list: List<Gozo>, @DrawableRes val imageRes: Int, val title: String) :
-        Prayer()
+    /**
+     * All of the Gozos verses, as one scrollable page of the day's [outer pager][
+     * com.mirkwood.novenapp.presentation.screens.prayer.PrayerScreen] - a Gozos card
+     * is a short call-and-response litany meant to be read straight through, not
+     * paged one verse per full-screen swipe.
+     */
+    data class AllGozos(
+        val gozos: List<Gozo>,
+        @DrawableRes val imageRes: Int
+    ) : Prayer()
 }
 
 sealed interface MainPrayer {

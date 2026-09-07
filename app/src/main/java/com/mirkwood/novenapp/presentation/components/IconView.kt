@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.R
@@ -80,15 +81,26 @@ internal fun IconView() {
             isBEnabled,
             onClick = { toggleB() })
         Spacer(modifier = Modifier.width(8.dp))*/
-        CircularIcon(R.drawable.icon_music, isMusicEnabled, { toggleC() })
+        CircularIcon(
+            iconRes = R.drawable.icon_music,
+            enabled = isMusicEnabled,
+            contentDescription = stringResource(
+                if (isMusicEnabled) {
+                    R.string.content_description_toggle_music_off
+                } else {
+                    R.string.content_description_toggle_music_on
+                }
+            ),
+            onClick = { toggleC() }
+        )
     }
 }
 
 @Composable
-fun CircularIcon(iconRes: Int, enabled: Boolean, onClick: () -> Unit) {
+fun CircularIcon(iconRes: Int, enabled: Boolean, contentDescription: String, onClick: () -> Unit) {
     Image(
         painter = painterResource(id = iconRes),
-        contentDescription = null,
+        contentDescription = contentDescription,
         modifier = Modifier
             .size(48.dp) // Tamaño del icono
             .alpha(if (!enabled) 0.5f else 1f)

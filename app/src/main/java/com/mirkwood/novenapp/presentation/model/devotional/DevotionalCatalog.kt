@@ -1,5 +1,6 @@
 package com.mirkwood.novenapp.presentation.model.devotional
 
+import android.util.Log
 import com.mirkwood.novenapp.R
 
 /**
@@ -40,5 +41,11 @@ object DevotionalCatalog {
 
     val default: DevotionalMeta get() = all.first()
 
-    fun findById(id: String): DevotionalMeta = all.firstOrNull { it.id == id } ?: default
+    fun findById(id: String): DevotionalMeta {
+        val match = all.firstOrNull { it.id == id }
+        if (match == null) {
+            Log.w("DevotionalCatalog", "No devotional found for id=\"$id\"; falling back to \"${default.id}\"")
+        }
+        return match ?: default
+    }
 }

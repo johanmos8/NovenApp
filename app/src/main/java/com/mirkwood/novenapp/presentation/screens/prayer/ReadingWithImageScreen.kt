@@ -99,7 +99,8 @@ internal fun ReadingWithImageScreen(
                         Text(
                             text = title,
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.headlineLarge
+                            style = MaterialTheme.typography.displaySmall,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                         Spacer(Modifier.height(16.dp))
                         Text(

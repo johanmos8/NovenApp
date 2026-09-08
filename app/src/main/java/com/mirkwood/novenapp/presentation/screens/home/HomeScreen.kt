@@ -8,12 +8,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,26 +24,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.NovenaAction
-import com.mirkwood.novenapp.presentation.components.CountdownToDate
 import com.mirkwood.novenapp.presentation.components.DayStrip
-import com.mirkwood.novenapp.presentation.components.GoToDayButton
-import com.mirkwood.novenapp.presentation.components.MainTitle
-import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.presentation.model.devotional.DevotionalCatalog
 import com.mirkwood.novenapp.presentation.model.devotional.DevotionalMeta
 import com.mirkwood.novenapp.presentation.state.NovenaViewState
 import com.mirkwood.novenapp.presentation.util.Util
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
 
+/**
+ * The "Camino" tab. A vertically scrolling feed rather than a single centered CTA:
+ * the [JourneyCard] is the hero entry point into the daily prayer, and further cards
+ * (other sections of interest) can be appended to the same column later.
+ * See `docs/home-journey-redesign.md`.
+ */
 @Composable
 internal fun HomeScreen(
     viewState: NovenaViewState,
@@ -54,48 +56,41 @@ internal fun HomeScreen(
     RequestNotificationPermissionIfNeeded()
     val isChristmas = remember(devotional) { Util.isCelebrationDay(devotional.schedule) }
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         if (isChristmas) {
             CelebrationAnimation()
-        } else {
-            LottieAnimationRender(R.raw.animation_snow_falling)
+            return@Box
         }
+
+        LottieAnimationRender(R.raw.animation_snow_falling)
+
+        val journeyStatus = remember(devotional, viewState.currentDay, completedDays) {
+            resolveJourneyStatus(devotional, viewState.currentDay, completedDays)
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            if (!isChristmas) {
-                MainTitle()
-                CountdownToDate(schedule = devotional.schedule)
-            }
-            val currentDay = viewState.currentDay
-            if (currentDay != null) {
-                GoToDayButton(
-                    currentDay = currentDay,
-                    onAction = onEvent
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            } else {
-                // Outside Dec 16-24 there's no "today" to jump to, but the prayers
-                // themselves are still worth reading - the strip below stays open
-                // rather than disappearing along with the button.
-                Text(
-                    text = stringResource(R.string.home_explore_all_days),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-            }
+            JourneyCard(
+                devotionalTitle = stringResource(devotional.titleResId),
+                status = journeyStatus,
+                onContinue = { day -> onEvent(NovenaAction.GoToDay(day)) },
+                onPreview = { onEvent(NovenaAction.GoToDay(1)) }
+            )
+
+            Text(
+                text = stringResource(R.string.journey_all_days_label),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(top = 8.dp, start = 4.dp)
+            )
             DayStrip(
                 totalDays = devotional.totalDays,
-                currentDay = currentDay,
+                currentDay = viewState.currentDay,
                 completedDays = completedDays,
                 onDaySelected = { day -> onEvent(NovenaAction.GoToDay(day)) },
                 modifier = Modifier.fillMaxWidth()

@@ -7,6 +7,7 @@ import com.mirkwood.novenapp.presentation.model.Dia
 import com.mirkwood.novenapp.presentation.model.Novena
 import com.mirkwood.novenapp.presentation.model.NovenaTab
 import com.mirkwood.novenapp.presentation.model.Prayer
+import com.mirkwood.novenapp.presentation.model.devotional.DevotionalImages
 import com.mirkwood.novenapp.presentation.model.devotional.DevotionalMeta
 
 /**
@@ -26,45 +27,80 @@ internal fun buildDevotionalDayPrayers(
     dayContent: Dia,
     devotional: DevotionalMeta,
     currentDay: Int
+): List<Prayer> = buildDayPrayers(content, dayContent, currentDay, devotional.images)
+
+/**
+ * The same page order as [buildDevotionalDayPrayers] but text-only: every reading is a
+ * [Prayer.Simple] and the Gozos page carries no hero image. For devotionals that ship
+ * without artwork, or a plain-text reading mode where the imagery would only get in the
+ * way of the prayer text.
+ */
+@Composable
+internal fun buildDevotionalDayPrayersWithoutImages(
+    content: Novena,
+    dayContent: Dia,
+    currentDay: Int
+): List<Prayer> = buildDayPrayers(content, dayContent, currentDay, images = null)
+
+/**
+ * Shared page assembly for both builders. When [images] is null each reading becomes a
+ * [Prayer.Simple] instead of a [Prayer.WithImage], and the Gozos page drops its hero.
+ */
+@Composable
+private fun buildDayPrayers(
+    content: Novena,
+    dayContent: Dia,
+    currentDay: Int,
+    images: DevotionalImages?
 ): List<Prayer> {
-    val images = devotional.images
+    fun reading(
+        text: String,
+        image: Int?,
+        title: String,
+        finalPrayers: Boolean = false
+    ): Prayer = if (image != null) {
+        Prayer.WithImage(text, image, title, finalPrayers)
+    } else {
+        Prayer.Simple(text, title, finalPrayers)
+    }
+
     return buildList {
         add(
-            Prayer.WithImage(
+            reading(
                 dayContent.reflexion,
-                images.dailyReflection,
+                images?.dailyReflection,
                 stringResource(R.string.text_consideration, currentDay)
             )
         )
         add(
-            Prayer.WithImage(
+            reading(
                 content.general.oracion_todos_los_dias,
-                images.dailyPrayer,
+                images?.dailyPrayer,
                 stringResource(NovenaTab.OracionTodosLosDias.titleResId),
                 true
             )
         )
         add(
-            Prayer.WithImage(
+            reading(
                 content.general.oracion_virgen_maria,
-                images.virgenMaria,
+                images?.virgenMaria,
                 stringResource(NovenaTab.OracionALaVirgen.titleResId),
                 true
             )
         )
         add(
-            Prayer.WithImage(
+            reading(
                 content.general.oracion_san_jose,
-                images.sanJose,
+                images?.sanJose,
                 stringResource(NovenaTab.OracionSanJose.titleResId),
                 true
             )
         )
-        add(Prayer.AllGozos(content.gozos, images.gozos))
+        add(Prayer.AllGozos(content.gozos, images?.gozos))
         add(
-            Prayer.WithImage(
+            reading(
                 content.general.oracion_niño_jesus,
-                images.ninoJesus,
+                images?.ninoJesus,
                 stringResource(NovenaTab.OracionAJesus.titleResId),
                 true
             )

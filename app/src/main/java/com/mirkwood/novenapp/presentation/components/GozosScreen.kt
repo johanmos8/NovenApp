@@ -55,7 +55,7 @@ import com.mirkwood.novenapp.ui.theme.NovenAppTheme
 @Composable
 internal fun GozosScreen(
     gozos: List<Gozo>,
-    image: MainModule.Hero
+    image: MainModule.Hero?
 ) {
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
@@ -68,14 +68,16 @@ internal fun GozosScreen(
 }
 
 @Composable
-internal fun TabletLayout(gozos: List<Gozo>, image: MainModule.Hero) {
+internal fun TabletLayout(gozos: List<Gozo>, image: MainModule.Hero?) {
     Column(modifier = Modifier.fillMaxSize()) {
-        HeroImage(
-            header = image,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(0.4f, fill = false)
-        )
+        if (image != null) {
+            HeroImage(
+                header = image,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.4f, fill = false)
+            )
+        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -97,7 +99,7 @@ internal fun TabletLayout(gozos: List<Gozo>, image: MainModule.Hero) {
 }
 
 @Composable
-internal fun PhoneLayout(gozos: List<Gozo>, image: MainModule.Hero) {
+internal fun PhoneLayout(gozos: List<Gozo>, image: MainModule.Hero?) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val fontScale = LocalDensity.current.fontScale
     val isLargeFont = fontScale > 1.2f
@@ -108,17 +110,20 @@ internal fun PhoneLayout(gozos: List<Gozo>, image: MainModule.Hero) {
         baseHeroHeight
     }
     Column(modifier = Modifier.fillMaxSize()) {
-        HeroImage(
-            header = image,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(heroHeight)
-        )
+        if (image != null) {
+            HeroImage(
+                header = image,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(heroHeight)
+            )
+        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .offset(y = (-32).dp)
+                // The pulled-up corner only makes sense overlapping a hero above it.
+                .offset(y = if (image != null) (-32).dp else 0.dp)
                 .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                 .background(MaterialTheme.colorScheme.background)
         ) {

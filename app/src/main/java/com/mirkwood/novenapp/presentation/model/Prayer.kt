@@ -24,7 +24,7 @@ sealed class Prayer {
      */
     data class AllGozos(
         val gozos: List<Gozo>,
-        @DrawableRes val imageRes: Int
+        @DrawableRes val imageRes: Int? = null
     ) : Prayer()
 }
 

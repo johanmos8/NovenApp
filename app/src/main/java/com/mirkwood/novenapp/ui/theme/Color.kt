@@ -1,60 +1,106 @@
 package com.mirkwood.novenapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
-
-// Seed hues for the seasonal palette below.
-val RedChristmas = Color(0xFFD32F2F)
-val GreenChristmas = Color(0xFF388E3C)
-val GoldChristmas = Color(0xFFFFD700)
+import androidx.compose.ui.graphics.lerp
 
 /*
- * A red/green/gold palette used as the non-dynamic-color fallback (pre-Android 12,
- * or dynamic color disabled) instead of Material's generic purple baseline - this is
- * a Christmas novena app, not a generic app, so its default look should say so.
- * Container/on-container pairs are hand-tuned tonal variants of each seed hue,
- * following the same light-tint-container/dark-tint-on-container convention
- * Material's own scheme generator uses.
+ * "Novena Contemplative MD3" - a warm porcelain/candlelight palette: deep indigo for
+ * structure, liturgical amber for active/completed states, twilight violet for
+ * meditative accents. Every light-theme value below is a literal from that spec, not
+ * derived - only the dark theme (which the spec doesn't define) is computed from it.
  */
-val LightPrimary = RedChristmas
-val LightOnPrimary = Color.White
-val LightPrimaryContainer = Color(0xFFFFDAD6)
-val LightOnPrimaryContainer = Color(0xFF410002)
 
-val LightSecondary = GreenChristmas
-val LightOnSecondary = Color.White
-val LightSecondaryContainer = Color(0xFFC8F5C6)
-val LightOnSecondaryContainer = Color(0xFF002204)
+// region Light - literal values from the design spec
+val LightPrimary = Color(0xFF24389C)
+val LightOnPrimary = Color(0xFFFFFFFF)
+val LightPrimaryContainer = Color(0xFF3F51B5)
+val LightOnPrimaryContainer = Color(0xFFCACFFF)
+val LightInversePrimary = Color(0xFFBAC3FF)
 
-val LightTertiary = GoldChristmas
-val LightOnTertiary = Color(0xFF3D2E00)
-val LightTertiaryContainer = Color(0xFFFFE082)
-val LightOnTertiaryContainer = Color(0xFF4A3B00)
+val LightSecondary = Color(0xFF904D00)
+val LightOnSecondary = Color(0xFFFFFFFF)
+val LightSecondaryContainer = Color(0xFFFE932C)
+val LightOnSecondaryContainer = Color(0xFF663500)
 
-val LightBackground = Color(0xFFFAFAFA)
-val LightOnBackground = Color(0xFF212121)
-val LightSurface = Color(0xFFF5F5F5)
-val LightOnSurface = Color(0xFF616161)
-val LightSurfaceVariant = Color(0xFFF0E0DE)
-val LightOnSurfaceVariant = Color(0xFF52443F)
+val LightTertiary = Color(0xFF593172)
+val LightOnTertiary = Color(0xFFFFFFFF)
+val LightTertiaryContainer = Color(0xFF73498B)
+val LightOnTertiaryContainer = Color(0xFFECC4FF)
 
-val DarkPrimary = Color(0xFFFFB4AB)
-val DarkOnPrimary = Color(0xFF690005)
-val DarkPrimaryContainer = Color(0xFF93000A)
-val DarkOnPrimaryContainer = Color(0xFFFFDAD6)
+val LightError = Color(0xFFBA1A1A)
+val LightOnError = Color(0xFFFFFFFF)
+val LightErrorContainer = Color(0xFFFFDAD6)
+val LightOnErrorContainer = Color(0xFF93000A)
 
-val DarkSecondary = Color(0xFFA8D5A2)
-val DarkOnSecondary = Color(0xFF00390A)
-val DarkSecondaryContainer = Color(0xFF1E5128)
-val DarkOnSecondaryContainer = Color(0xFFC8F5C6)
+val LightBackground = Color(0xFFFAF8FF)
+val LightOnBackground = Color(0xFF1A1B21)
+val LightSurface = Color(0xFFFAF8FF)
+val LightOnSurface = Color(0xFF1A1B21)
+val LightSurfaceVariant = Color(0xFFE2E2EA)
+val LightOnSurfaceVariant = Color(0xFF454652)
+val LightSurfaceTint = Color(0xFF4355B9)
+val LightSurfaceDim = Color(0xFFDAD9E1)
+val LightSurfaceBright = Color(0xFFFAF8FF)
+val LightSurfaceContainerLowest = Color(0xFFFFFFFF)
+val LightSurfaceContainerLow = Color(0xFFF3F3FB)
+val LightSurfaceContainer = Color(0xFFEEEDF5)
+val LightSurfaceContainerHigh = Color(0xFFE8E7F0)
+val LightSurfaceContainerHighest = Color(0xFFE2E2EA)
+val LightInverseSurface = Color(0xFF2F3036)
+val LightInverseOnSurface = Color(0xFFF1F0F8)
+val LightOutline = Color(0xFF757684)
+val LightOutlineVariant = Color(0xFFC5C5D4)
 
-val DarkTertiary = Color(0xFFF5D67B)
-val DarkOnTertiary = Color(0xFF3D2E00)
-val DarkTertiaryContainer = Color(0xFF5C4700)
-val DarkOnTertiaryContainer = Color(0xFFFFE082)
+// The spec's "fixed" roles (same tone in both themes) aren't settable through this
+// Material3 version's ColorScheme, but their hexes are still useful raw material below
+// for deriving readable dark on-container text without inventing new tones.
+private val SecondaryFixed = Color(0xFFFFDCC3)
+// endregion
 
-val DarkBackground = Color(0xFF121212)
-val DarkOnBackground = Color(0xFFE0E0E0)
-val DarkSurface = Color(0xFF1E1E1E)
-val DarkOnSurface = Color(0xFFBDBDBD)
-val DarkSurfaceVariant = Color(0xFF4A3934)
-val DarkOnSurfaceVariant = Color(0xFFD8C2BC)
+// region Dark - derived from the light spec (not part of the original design)
+val DarkPrimary = lerp(LightPrimaryContainer, Color.White, 0.35f)
+val DarkOnPrimary = lerp(LightPrimaryContainer, Color.Black, 0.55f)
+val DarkPrimaryContainer = lerp(LightPrimary, Color.Black, 0.35f)
+val DarkOnPrimaryContainer = LightOnPrimaryContainer
+val DarkInversePrimary = LightPrimaryContainer
+
+val DarkSecondary = lerp(LightSecondaryContainer, Color.White, 0.25f)
+val DarkOnSecondary = lerp(LightSecondaryContainer, Color.Black, 0.65f)
+val DarkSecondaryContainer = lerp(LightSecondary, Color.Black, 0.25f)
+val DarkOnSecondaryContainer = SecondaryFixed
+
+val DarkTertiary = lerp(LightTertiaryContainer, Color.White, 0.30f)
+val DarkOnTertiary = lerp(LightTertiaryContainer, Color.Black, 0.55f)
+val DarkTertiaryContainer = lerp(LightTertiary, Color.Black, 0.30f)
+val DarkOnTertiaryContainer = LightOnTertiaryContainer
+
+// Material's own baseline dark error tones - the spec's light error values already are
+// Material's baseline light error tones, so the dark side follows the same baseline.
+val DarkError = Color(0xFFFFB4AB)
+val DarkOnError = Color(0xFF690005)
+val DarkErrorContainer = Color(0xFF93000A)
+val DarkOnErrorContainer = Color(0xFFFFDAD6)
+
+// The spec's own inverse-surface/inverse-on-surface are, by M3 convention, what the
+// opposite theme's surface/onSurface look like - so dark mode's actual surface pair
+// reuses those instead of re-deriving new ones, and its inverse pair reuses light's
+// real surface/onSurface right back.
+val DarkBackground = LightInverseSurface
+val DarkOnBackground = LightInverseOnSurface
+val DarkSurface = LightInverseSurface
+val DarkOnSurface = LightInverseOnSurface
+val DarkSurfaceVariant = lerp(LightOnSurfaceVariant, Color.Black, 0.35f)
+val DarkOnSurfaceVariant = lerp(LightOnSurfaceVariant, Color.White, 0.55f)
+val DarkSurfaceTint = LightSurfaceTint
+val DarkSurfaceDim = lerp(DarkSurface, Color.Black, 0.15f)
+val DarkSurfaceBright = lerp(DarkSurface, Color.White, 0.15f)
+val DarkSurfaceContainerLowest = lerp(DarkSurface, Color.Black, 0.10f)
+val DarkSurfaceContainerLow = lerp(DarkSurface, Color.White, 0.04f)
+val DarkSurfaceContainer = lerp(DarkSurface, Color.White, 0.08f)
+val DarkSurfaceContainerHigh = lerp(DarkSurface, Color.White, 0.12f)
+val DarkSurfaceContainerHighest = lerp(DarkSurface, Color.White, 0.16f)
+val DarkInverseSurface = LightSurface
+val DarkInverseOnSurface = LightOnSurface
+val DarkOutline = lerp(LightOutline, Color.White, 0.25f)
+val DarkOutlineVariant = lerp(LightOutlineVariant, Color.Black, 0.55f)
+// endregion

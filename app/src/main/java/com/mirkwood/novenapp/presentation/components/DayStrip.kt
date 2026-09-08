@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.FilterChip
@@ -56,12 +57,38 @@ internal fun DayStrip(
             val day = index + 1
             val isUnlocked = currentDay == null || day <= currentDay
             val isCompleted = day in completedDays
+            val isCurrent = day == currentDay
             val dayLabel = stringResource(
                 if (isUnlocked) R.string.text_dia else R.string.text_dia_locked,
                 day
             )
+            // Three tallied states rather than FilterChip's plain selected/unselected pair -
+            // completed (indigo, amber check), current (amber, the "active candle"), or
+            // upcoming/locked (neutral tonal) - so a past completed day still reads as done
+            // even once it's no longer the current one.
+            val colors = when {
+                isCompleted -> FilterChipDefaults.filterChipColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    labelColor = MaterialTheme.colorScheme.onPrimary,
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                )
+                isCurrent -> FilterChipDefaults.filterChipColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    labelColor = MaterialTheme.colorScheme.onSecondary,
+                    selectedContainerColor = MaterialTheme.colorScheme.secondary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onSecondary
+                )
+                !isUnlocked -> FilterChipDefaults.filterChipColors(
+                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                )
+                else -> FilterChipDefaults.filterChipColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                )
+            }
             FilterChip(
-                selected = day == currentDay,
+                selected = isCurrent,
                 onClick = {
                     if (isUnlocked) {
                         onDaySelected(day)
@@ -69,25 +96,20 @@ internal fun DayStrip(
                         Toast.makeText(context, lockedMessage, Toast.LENGTH_SHORT).show()
                     }
                 },
+                shape = RoundedCornerShape(percent = 50),
                 label = {
                     if (isCompleted) {
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.size(FilterChipDefaults.IconSize)
                         )
                     } else {
                         Text(day.toString())
                     }
                 },
-                colors = if (isUnlocked) {
-                    FilterChipDefaults.filterChipColors()
-                } else {
-                    FilterChipDefaults.filterChipColors(
-                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                    )
-                },
+                colors = colors,
                 modifier = Modifier.semantics { contentDescription = dayLabel }
             )
         }

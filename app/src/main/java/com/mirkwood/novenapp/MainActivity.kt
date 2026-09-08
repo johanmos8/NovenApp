@@ -7,11 +7,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.StringRes
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
@@ -23,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -31,13 +33,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -45,6 +45,7 @@ import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.presentation.AppNavHost
 import com.mirkwood.novenapp.presentation.MainViewModel
 import com.mirkwood.novenapp.presentation.NovenaAction
+import com.mirkwood.novenapp.presentation.components.NovenAppBar
 import com.mirkwood.novenapp.presentation.navigation.NavigationScreen
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
 import org.koin.androidx.compose.koinViewModel
@@ -137,25 +138,45 @@ fun MyApp(
         }
     }
 
+    // Re-resolve "today's day" every time the Novena tab comes to the front, so a date
+    // rollover (past midnight, or the More ▸ Debug forced-date switch) is reflected
+    // without a full app restart.
+    LaunchedEffect(currentRoute) {
+        if (currentRoute == NavigationScreen.HomeScreen.route) {
+            viewModel.refreshCurrentDay()
+        }
+    }
+
     NovenAppTheme {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
-                if (currentRoute != NavigationScreen.DayScreen.route) {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                when (currentRoute) {
-                                    NavigationScreen.LyricsScreen.route -> stringResource(R.string.villancicos)
-                                    NavigationScreen.LyricsViewScreen.route -> currentSongTitle
-                                    NavigationScreen.MoreScreen.route -> stringResource(R.string.bottom_nav_more)
-                                    NavigationScreen.AboutUsScreen.route -> stringResource(R.string.text_about_us)
-                                    else -> ""
-                                }
-                            )
-                        },
-                        navigationIcon = {
-                            if (!isTopLevelRoute) {
+                when (currentRoute) {
+                    NavigationScreen.HomeScreen.route -> NovenAppBar(
+                        sectionTitle = stringResource(R.string.app_bar_section_home)
+                    )
+                    NavigationScreen.LyricsScreen.route -> NovenAppBar(
+                        sectionTitle = stringResource(R.string.app_bar_section_lyrics)
+                    )
+                    NavigationScreen.MoreScreen.route -> NovenAppBar(
+                        sectionTitle = stringResource(R.string.app_bar_section_more)
+                    )
+                    NavigationScreen.DayScreen.route -> NovenAppBar(
+                        sectionTitle = stringResource(R.string.app_bar_section_reading),
+                        onBackClick = { navController.popBackStack() }
+                    )
+                    NavigationScreen.LyricsViewScreen.route, NavigationScreen.AboutUsScreen.route -> {
+                        TopAppBar(
+                            title = {
+                                Text(
+                                    if (currentRoute == NavigationScreen.LyricsViewScreen.route) {
+                                        currentSongTitle
+                                    } else {
+                                        stringResource(R.string.text_about_us)
+                                    }
+                                )
+                            },
+                            navigationIcon = {
                                 IconButton(onClick = { navController.popBackStack() }) {
                                     Icon(
                                         Icons.AutoMirrored.Filled.ArrowBack,
@@ -163,28 +184,47 @@ fun MyApp(
                                     )
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             },
             bottomBar = {
                 if (isTopLevelRoute) {
-                    NavigationBar {
-                        bottomNavDestinations.forEach { destination ->
-                            NavigationBarItem(
-                                selected = currentRoute == destination.route,
-                                onClick = {
-                                    navController.navigate(destination.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
+                    // A regular Material 3 NavigationBar, but wrapped in a rounded,
+                    // elevated Surface with side margins so it reads as a bar floating
+                    // over the app background rather than a slab pinned to the edge.
+                    // It stays in the Scaffold bottomBar slot, so screen content is
+                    // still inset above it automatically.
+                    Surface(
+                        shape = MaterialTheme.shapes.large,
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        tonalElevation = 3.dp,
+                        shadowElevation = 6.dp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    ) {
+                        NavigationBar(
+                            containerColor = Color.Transparent,
+                            windowInsets = WindowInsets(0, 0, 0, 0)
+                        ) {
+                            bottomNavDestinations.forEach { destination ->
+                                NavigationBarItem(
+                                    selected = currentRoute == destination.route,
+                                    onClick = {
+                                        navController.navigate(destination.route) {
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
                                         }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                },
-                                icon = destination.icon,
-                                label = { Text(stringResource(destination.labelRes)) }
-                            )
+                                    },
+                                    icon = destination.icon,
+                                    label = { Text(stringResource(destination.labelRes)) }
+                                )
+                            }
                         }
                     }
                 }
@@ -195,14 +235,6 @@ fun MyApp(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                if (NavigationScreen.DayScreen.route == currentRoute) {
-                    BackButton(
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .zIndex(1f),
-                        onBackClick = { navController.popBackStack() }
-                    )
-                }
                 AppNavHost(
                     navController = navController,
                     mainViewModel = viewModel,
@@ -212,30 +244,6 @@ fun MyApp(
                 )
             }
         }
-    }
-}
-
-/**
- * Floats over a devotional's hero image, so it deliberately doesn't use the ambient
- * surface/onSurface theme colors - it needs to stay legible against arbitrary photo
- * content, not the app's background. [MaterialTheme.colorScheme.scrim] (the role
- * Material defines for exactly this "dim content behind an overlay" case) replaces
- * what used to be a raw [Color.Black], while the icon stays a fixed light tint for
- * the same reason a camera app's overlay controls don't reskin per theme.
- */
-@Composable
-fun BackButton(modifier: Modifier = Modifier, onBackClick: () -> Unit) {
-    IconButton(
-        onClick = onBackClick,
-        modifier = modifier
-            .padding(16.dp)
-            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.3f), CircleShape)
-    ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            tint = Color.White,
-            contentDescription = stringResource(R.string.btn_back)
-        )
     }
 }
 

@@ -40,7 +40,8 @@ internal fun ReadingWithImageScreen(
     title: String,
     textContent: String,
     image: MainModule.Hero,
-    finalPrayers: Boolean = false
+    finalPrayers: Boolean = false,
+    textScale: Float = 1f
 ) {
 
     //val scrollState = rememberScrollState()
@@ -106,8 +107,8 @@ internal fun ReadingWithImageScreen(
                         Text(
                             text = textContent,
                             style = TextStyle(
-                                fontSize = 18.sp,
-                                lineHeight = 28.sp, // Espaciado entre líneas
+                                fontSize = 18.sp * textScale,
+                                lineHeight = 28.sp * textScale, // Espaciado entre líneas
                                 fontWeight = FontWeight.Normal,
                                 textAlign = TextAlign.Justify // Texto justificado
                             ),

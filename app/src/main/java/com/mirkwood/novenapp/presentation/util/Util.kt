@@ -1,5 +1,6 @@
 package com.mirkwood.novenapp.presentation.util
 
+import com.mirkwood.novenapp.debug.DebugClock
 import com.mirkwood.novenapp.presentation.model.devotional.DevotionalSchedule
 import java.time.LocalDate
 import java.time.ZoneId
@@ -13,12 +14,19 @@ import java.time.temporal.ChronoUnit
 object Util {
 
     /**
+     * The date the whole app treats as "today". Normally [LocalDate.now]; in a debug
+     * build it can be overridden from More ▸ Debug (see [DebugClock]) to preview the
+     * seasonal novena UI on any date. Always the real date in release builds.
+     */
+    fun currentDate(): LocalDate = DebugClock.today()
+
+    /**
      * Tries the range anchored to the previous year first, then today's year, so a
      * range that wraps into January (e.g. Dec 28 - Jan 5) resolves correctly on
      * either side of the New Year, and computes the day index by elapsed days
      * (not day-of-month subtraction) so a range spanning two months works too.
      */
-    fun resolveCurrentDay(schedule: DevotionalSchedule, today: LocalDate = LocalDate.now()): Int? {
+    fun resolveCurrentDay(schedule: DevotionalSchedule, today: LocalDate = currentDate()): Int? {
         if (schedule !is DevotionalSchedule.FixedRange) return null
         for (startYear in intArrayOf(today.year - 1, today.year)) {
             val start = LocalDate.of(startYear, schedule.startMonth, schedule.startDay)
@@ -31,7 +39,7 @@ object Util {
         return null
     }
 
-    fun isCelebrationDay(schedule: DevotionalSchedule, today: LocalDate = LocalDate.now()): Boolean {
+    fun isCelebrationDay(schedule: DevotionalSchedule, today: LocalDate = currentDate()): Boolean {
         if (schedule !is DevotionalSchedule.FixedRange) return false
         return today.monthValue == schedule.celebrationMonth && today.dayOfMonth == schedule.celebrationDay
     }
@@ -43,7 +51,7 @@ object Util {
      * scheduler (to find when to fire next) and the home-screen widget (to show a
      * countdown when the devotional isn't active yet).
      */
-    fun resolveNextOccurrence(schedule: DevotionalSchedule, from: LocalDate = LocalDate.now()): LocalDate? {
+    fun resolveNextOccurrence(schedule: DevotionalSchedule, from: LocalDate = currentDate()): LocalDate? {
         if (schedule !is DevotionalSchedule.FixedRange) return null
         val startThisYear = LocalDate.of(from.year, schedule.startMonth, schedule.startDay)
         val endThisYear = LocalDate.of(from.year, schedule.endMonth, schedule.endDay)
@@ -54,7 +62,7 @@ object Util {
         }
     }
 
-    fun calculateTimeRemaining(schedule: DevotionalSchedule, now: LocalDate = LocalDate.now()): Long {
+    fun calculateTimeRemaining(schedule: DevotionalSchedule, now: LocalDate = currentDate()): Long {
         if (schedule !is DevotionalSchedule.FixedRange) return 0L
 
         val isAfterCelebration =

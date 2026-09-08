@@ -42,6 +42,13 @@
     <string name="about_us_app_info_label">Información de la app</string>
 
     <string name="content_description_app_logo">Logotipo de NovenApp</string>
+    <string name="content_description_notifications">Notificaciones</string>
+    <string name="content_description_profile">Perfil</string>
+
+    <string name="app_bar_section_home">Camino</string>
+    <string name="app_bar_section_reading">Oración diaria</string>
+    <string name="app_bar_section_lyrics">Villancicos</string>
+    <string name="app_bar_section_more">Más</string>
     <string name="content_description_studio_logo">Logotipo de Outrageous Cat</string>
     <string name="content_description_toggle_music_on">Reproducir música de fondo</string>
     <string name="content_description_toggle_music_off">Pausar música de fondo</string>
@@ -58,10 +65,35 @@
     <string name="day_strip_locked_message">Este día aún no está disponible</string>
     <string name="day_preview_banner">Estás viendo un adelanto: este día aún no comienza</string>
     <string name="home_explore_all_days">Explora cualquier día de la novena</string>
+
+    <!-- Home "Camino" journey feed. See docs/home-journey-redesign.md -->
+    <string name="journey_pill_in_progress">Novena en curso</string>
+    <string name="journey_pill_upcoming">Próxima novena</string>
+    <string name="journey_pill_completed">Novena completada</string>
+    <string name="journey_day_of">Día %1$d de %2$d</string>
+    <string name="journey_fraction_of_path">%1$d%% del camino</string>
+    <string name="journey_keeping_up">Vas al día</string>
+    <string name="journey_continue_day">Continuar · Oración del día %1$d</string>
+    <string name="journey_starts_on">Comienza el %1$s</string>
+    <string name="journey_preview_novena">Ver la novena</string>
+    <string name="journey_read_again">Leer de nuevo</string>
+    <string name="journey_completed_summary">%1$d de %2$d días · Completada</string>
+    <string name="journey_progress_content_description">%1$d de %2$d días rezados</string>
+    <string name="journey_all_days_label">Ir a un día</string>
     <string name="mark_day_as_prayed">Marcar Día %d como rezado</string>
     <string name="day_marked_as_prayed">Día %d rezado</string>
     <string name="gozo_mark_read">Marcar verso %d como leído</string>
     <string name="gozo_marked_read">Verso %d leído</string>
+
+    <!-- Prayer screen toolbar (below the app bar) -->
+    <string name="prayer_progress_pill">%1$d de %2$d días</string>
+    <string name="content_description_decrease_text_size">Reducir el tamaño del texto</string>
+    <string name="content_description_increase_text_size">Aumentar el tamaño del texto</string>
+    <string name="prayer_listen">Escuchar</string>
+    <string name="prayer_stop">Detener</string>
+    <string name="prayer_stage_label">Paso %1$d: %2$s</string>
+    <string name="prayer_stage_minutes">~%d min</string>
+    <string name="prayer_stage_progress">Paso %1$d de %2$d</string>
 
     <string name="our_father">
         Padre nuestro que estás en el cielo, santificado sea tu Nombre;

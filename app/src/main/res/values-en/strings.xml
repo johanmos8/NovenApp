@@ -40,6 +40,13 @@
     <string name="about_us_app_info_label">App information:</string>
 
     <string name="content_description_app_logo">NovenApp logo</string>
+    <string name="content_description_notifications">Notifications</string>
+    <string name="content_description_profile">Profile</string>
+
+    <string name="app_bar_section_home">Journey</string>
+    <string name="app_bar_section_reading">Daily prayer</string>
+    <string name="app_bar_section_lyrics">Carols</string>
+    <string name="app_bar_section_more">More</string>
     <string name="content_description_studio_logo">Outrageous Cat logo</string>
     <string name="content_description_toggle_music_on">Play background music</string>
     <string name="content_description_toggle_music_off">Pause background music</string>
@@ -56,10 +63,35 @@
     <string name="day_strip_locked_message">This day isn\'t available yet</string>
     <string name="day_preview_banner">You\'re getting an early look - this day hasn\'t started yet</string>
     <string name="home_explore_all_days">Explore any day of the novena</string>
+
+    <!-- Home "Journey" feed. See docs/home-journey-redesign.md -->
+    <string name="journey_pill_in_progress">Novena in progress</string>
+    <string name="journey_pill_upcoming">Upcoming novena</string>
+    <string name="journey_pill_completed">Novena completed</string>
+    <string name="journey_day_of">Day %1$d of %2$d</string>
+    <string name="journey_fraction_of_path">%1$d%% of the journey</string>
+    <string name="journey_keeping_up">You\'re keeping up</string>
+    <string name="journey_continue_day">Continue · Day %1$d prayer</string>
+    <string name="journey_starts_on">Starts %1$s</string>
+    <string name="journey_preview_novena">Preview the novena</string>
+    <string name="journey_read_again">Read again</string>
+    <string name="journey_completed_summary">%1$d of %2$d days · Completed</string>
+    <string name="journey_progress_content_description">%1$d of %2$d days prayed</string>
+    <string name="journey_all_days_label">Go to a day</string>
     <string name="mark_day_as_prayed">Mark Day %d as prayed</string>
     <string name="day_marked_as_prayed">Day %d prayed</string>
     <string name="gozo_mark_read">Mark verse %d as read</string>
     <string name="gozo_marked_read">Verse %d read</string>
+
+    <!-- Prayer screen toolbar (below the app bar) -->
+    <string name="prayer_progress_pill">%1$d of %2$d days</string>
+    <string name="content_description_decrease_text_size">Decrease text size</string>
+    <string name="content_description_increase_text_size">Increase text size</string>
+    <string name="prayer_listen">Listen</string>
+    <string name="prayer_stop">Stop</string>
+    <string name="prayer_stage_label">Stage %1$d: %2$s</string>
+    <string name="prayer_stage_minutes">~%d min</string>
+    <string name="prayer_stage_progress">Stage %1$d of %2$d</string>
 
     <string name="our_father">
     Our Father, who art in heaven, hallowed be thy name; thy kingdom come; thy will be done on earth as it is in heaven.

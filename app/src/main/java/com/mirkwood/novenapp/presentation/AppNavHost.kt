@@ -23,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.mapper.buildDevotionalDayPrayers
+import com.mirkwood.novenapp.presentation.mapper.buildDevotionalDayPrayersWithoutImages
 import com.mirkwood.novenapp.presentation.model.Novena
 import com.mirkwood.novenapp.presentation.navigation.NavigationScreen
 import com.mirkwood.novenapp.presentation.screens.aboutus.AboutUsScreen
@@ -102,7 +103,9 @@ internal fun AppNavHost(
                 val loadedContent = content
                 val dayContent = loadedContent?.dias?.getOrNull(currentDay - 1)
                 if (loadedContent != null && dayContent != null) {
-                    val list = buildDevotionalDayPrayers(loadedContent, dayContent, devotionalMeta, currentDay)
+                    //val list = buildDevotionalDayPrayers(loadedContent, dayContent, devotionalMeta, currentDay)
+                    val list = buildDevotionalDayPrayersWithoutImages(loadedContent, dayContent, currentDay)
+
                     // Not derived from `novenaDay` above: that already falls back to
                     // today's day when the requested one is out of bounds, so it can
                     // never itself be "ahead". This is the actual current day, used
@@ -112,6 +115,7 @@ internal fun AppNavHost(
                     PrayerScreen(
                         prayers = list,
                         dayNumber = currentDay,
+                        totalDays = devotionalMeta.totalDays,
                         isPreview = isPreview,
                         isDayCompleted = currentDay in completedDays,
                         onToggleDayCompleted = { mainViewModel.toggleDayCompleted(currentDay) }

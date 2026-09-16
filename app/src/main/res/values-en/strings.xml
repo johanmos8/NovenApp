@@ -38,6 +38,8 @@
             \nOur mission is to keep this beautiful tradition alive in the digital age, making it more accessible and engaging for everyone. Whether at home, with friends, or on the go, NovenApp helps you connect with the Christmas spirit in a meaningful way.
             \n¡Join us in celebrating this special time of year with NovenApp! 🎄✨</string>
     <string name="about_us_app_info_label">App information:</string>
+    <string name="about_us_version_label">Version %1$s</string>
+    <string name="about_us_developer_handle">@johanmos8</string>
 
     <string name="content_description_app_logo">NovenApp logo</string>
     <string name="content_description_notifications">Notifications</string>

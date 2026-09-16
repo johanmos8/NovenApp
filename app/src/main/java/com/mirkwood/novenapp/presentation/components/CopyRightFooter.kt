@@ -34,12 +34,14 @@ fun CopyRightFooter() {
         ) {
             Text(
                 text = "© $currentYear ${stringResource(R.string.about_us_outrageous_cat_section_title)}",
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.padding(horizontal = 8.dp))
             Text(
-                text = "@johanmos8",
-                style = MaterialTheme.typography.bodySmall
+                text = stringResource(R.string.about_us_developer_handle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

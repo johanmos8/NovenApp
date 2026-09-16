@@ -40,6 +40,8 @@
         \n¡Únete a la celebración con NovenApp! 🎄✨
     </string>
     <string name="about_us_app_info_label">Información de la app</string>
+    <string name="about_us_version_label">Versión %1$s</string>
+    <string name="about_us_developer_handle">@johanmos8</string>
 
     <string name="content_description_app_logo">Logotipo de NovenApp</string>
     <string name="content_description_notifications">Notificaciones</string>

@@ -4,8 +4,6 @@
     <string name="novena_aguinaldos_title">Novena de Aguinaldos</string>
     <string name="text_ir_a">Ir al día %s</string>
     <string name="text_consideration">Consideración día %d</string>
-    <string name="text_dia">Día %d</string>
-    <string name="text_dia_locked">Día %d, bloqueado</string>
     <string name="text_navidad_en">Navidad en:</string>
     <string name="text_navidad_en_yy_mm_dd">"%d días, %d horas, %d minutos, %d segundos"</string>
     <string name="gozos_title">Gozos</string>
@@ -58,14 +56,16 @@
     <string name="notification_channel_name">Recordatorio diario de la novena</string>
     <string name="notification_channel_description">Te avisa qué día de la Novena de Aguinaldos es, del 16 al 24 de diciembre.</string>
     <string name="notification_daily_reminder_text">Hoy es el Día %d de la novena. Toca para rezarlo.</string>
+    <string name="notification_evening_check_in_text">La oración del Día %d todavía te espera. Toca para rezarla.</string>
 
     <string name="widget_description">Muestra el día de la novena o la cuenta regresiva a la Navidad.</string>
     <string name="widget_today_label">Día %d</string>
     <string name="widget_countdown_label">Faltan %d días</string>
 
     <string name="error_devotional_content_unavailable">Este contenido no está disponible en este momento.</string>
-    <string name="day_strip_locked_message">Este día aún no está disponible</string>
     <string name="day_preview_banner">Estás viendo un adelanto: este día aún no comienza</string>
+    <string name="content_description_previous_day">Día anterior</string>
+    <string name="content_description_next_day">Día siguiente</string>
     <string name="home_explore_all_days">Explora cualquier día de la novena</string>
 
     <!-- Home "Camino" journey feed. See docs/home-journey-redesign.md -->
@@ -81,7 +81,6 @@
     <string name="journey_read_again">Leer de nuevo</string>
     <string name="journey_completed_summary">%1$d de %2$d días · Completada</string>
     <string name="journey_progress_content_description">%1$d de %2$d días rezados</string>
-    <string name="journey_all_days_label">Ir a un día</string>
     <string name="mark_day_as_prayed">Marcar Día %d como rezado</string>
     <string name="day_marked_as_prayed">Día %d rezado</string>
     <string name="gozo_mark_read">Marcar verso %d como leído</string>

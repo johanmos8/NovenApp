@@ -20,6 +20,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocalFireDepartment
@@ -29,6 +31,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -72,7 +75,10 @@ internal fun PrayerScreen(
     totalDays: Int,
     isPreview: Boolean = false,
     isDayCompleted: Boolean = false,
-    onToggleDayCompleted: () -> Unit = {}
+    onToggleDayCompleted: () -> Unit = {},
+    onPreviousDay: (() -> Unit)? = null,
+    onNextDay: (() -> Unit)? = null,
+    onStageTitleChange: (String) -> Unit = {}
 ) {
     val pagerState = rememberPagerState(pageCount = {
         prayers.size
@@ -85,14 +91,17 @@ internal fun PrayerScreen(
     val scope = rememberCoroutineScope()
 
     val narrator = rememberPrayerNarrator()
-    // Narration is tied to the page it was started from - swiping away stops it rather
-    // than leaving a previous prayer being read aloud over a different one on screen.
-    LaunchedEffect(pagerState.currentPage) {
-        narrator.stop()
-    }
-
     val gozosLabel = stringResource(R.string.gozos_title)
     val currentStage = prayers.getOrNull(pagerState.currentPage)
+
+    // Narration is tied to the page it was started from - swiping away stops it rather
+    // than leaving a previous prayer being read aloud over a different one on screen.
+    // Reports the page's own title too, so the hosting app bar (see specs/day-screen-dynamic-title)
+    // can show it instead of a generic static label.
+    LaunchedEffect(pagerState.currentPage) {
+        narrator.stop()
+        currentStage?.let { onStageTitleChange(it.stageTitle(gozosLabel)) }
+    }
 
     Column(
         modifier = Modifier
@@ -107,6 +116,8 @@ internal fun PrayerScreen(
         PrayerToolbar(
             dayNumber = dayNumber,
             totalDays = totalDays,
+            onPreviousDay = onPreviousDay,
+            onNextDay = onNextDay,
             canDecreaseText = textScale > MIN_TEXT_SCALE,
             canIncreaseText = textScale < MAX_TEXT_SCALE,
             onDecreaseText = {
@@ -325,14 +336,19 @@ private fun StageSegments(
 
 /**
  * The control strip directly below the app bar, present on every page of the pager:
- * a read-only progress pill on the leading side, and the reading aids (text size,
- * listen) on the trailing side. Kept out of the pager itself so it does not scroll
- * away with the prayer text and stays put while swiping between pages.
+ * a day navigator (prev/next arrows around the progress pill) on its own row, and the
+ * reading aids (text size, listen) on the row below. Split into two rows - rather than
+ * one crowded `SpaceBetween` row - because the day navigator's extra arrows made the
+ * single-row version overflow on narrow phones, wrapping the listen button's text.
+ * Kept out of the pager itself so it does not scroll away with the prayer text and
+ * stays put while swiping between pages.
  */
 @Composable
 private fun PrayerToolbar(
     dayNumber: Int,
     totalDays: Int,
+    onPreviousDay: (() -> Unit)?,
+    onNextDay: (() -> Unit)?,
     canDecreaseText: Boolean,
     canIncreaseText: Boolean,
     onDecreaseText: () -> Unit,
@@ -341,18 +357,36 @@ private fun PrayerToolbar(
     onToggleListen: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        ProgressPill(dayNumber = dayNumber, totalDays = totalDays)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onPreviousDay ?: {}, enabled = onPreviousDay != null) {
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = stringResource(R.string.content_description_previous_day)
+                )
+            }
+            ProgressPill(dayNumber = dayNumber, totalDays = totalDays)
+            IconButton(onClick = onNextDay ?: {}, enabled = onNextDay != null) {
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = stringResource(R.string.content_description_next_day)
+                )
+            }
+        }
 
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(2.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             val decreaseLabel = stringResource(R.string.content_description_decrease_text_size)
             val increaseLabel = stringResource(R.string.content_description_increase_text_size)

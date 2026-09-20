@@ -38,11 +38,25 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 
+/**
+ * Steps to an adjacent day of the same devotional, replacing the current DayScreen
+ * back-stack entry instead of pushing a new one - so tapping the prev/next arrows
+ * repeatedly doesn't pile up entries, and the top-bar back button always returns
+ * directly to Home regardless of how many days were browsed.
+ */
+private fun NavHostController.navigateToDevotionalDay(devotionalId: String, day: Int) {
+    navigate(NavigationScreen.DayScreen.createRoute(devotionalId, day)) {
+        popUpTo(NavigationScreen.DayScreen.route) { inclusive = true }
+        launchSingleTop = true
+    }
+}
+
 @Composable
 internal fun AppNavHost(
     navController: NavHostController = rememberNavController(),
     mainViewModel: MainViewModel = koinViewModel(),
-    onSongTitleUpdated: (String) -> Unit
+    onSongTitleUpdated: (String) -> Unit,
+    onStageTitleUpdated: (String) -> Unit = {}
 ) {
     val state by mainViewModel.state.collectAsState()
     val completedDays by mainViewModel.completedDays.collectAsState()
@@ -112,13 +126,31 @@ internal fun AppNavHost(
                     // only to decide whether the day being viewed is a preview.
                     val actualCurrentDay = Util.resolveCurrentDay(devotionalMeta.schedule)
                     val isPreview = actualCurrentDay == null || currentDay > actualCurrentDay
+
+                    // Day-to-day navigation is purely ordinal (day ± 1, clamped to the
+                    // devotional's own range) - it's deliberately NOT capped at
+                    // `actualCurrentDay`, so stepping past "today" lands on the preview
+                    // banner above instead of being blocked. If this ever needs to change
+                    // back to a locked/no-preview-ahead model, cap `nextDay`'s bound at
+                    // `actualCurrentDay ?: devotionalMeta.totalDays` instead of
+                    // `devotionalMeta.totalDays`, and surface that block explicitly
+                    // (e.g. a Toast, matching the old DayStrip's `isUnlocked` behavior)
+                    // rather than silently disabling the arrow.
+                    val onPreviousDay = (currentDay - 1).takeIf { it >= 1 }
+                        ?.let { previousDay -> { navController.navigateToDevotionalDay(devotionalId, previousDay) } }
+                    val onNextDay = (currentDay + 1).takeIf { it <= devotionalMeta.totalDays }
+                        ?.let { nextDay -> { navController.navigateToDevotionalDay(devotionalId, nextDay) } }
+
                     PrayerScreen(
                         prayers = list,
                         dayNumber = currentDay,
                         totalDays = devotionalMeta.totalDays,
                         isPreview = isPreview,
                         isDayCompleted = currentDay in completedDays,
-                        onToggleDayCompleted = { mainViewModel.toggleDayCompleted(currentDay) }
+                        onToggleDayCompleted = { mainViewModel.toggleDayCompleted(currentDay) },
+                        onPreviousDay = onPreviousDay,
+                        onNextDay = onNextDay,
+                        onStageTitleChange = onStageTitleUpdated
                     )
                 } else if (loadedContent != null) {
                     // Content loaded, but this day index doesn't exist in it (catalog's

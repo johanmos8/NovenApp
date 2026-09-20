@@ -23,8 +23,37 @@ object NovenaNotifier {
 
     private const val CHANNEL_ID = "novena_daily_reminder"
     private const val NOTIFICATION_ID = 1001
+    private const val EVENING_CHECK_IN_NOTIFICATION_ID = 1002
 
     fun showDailyReminder(context: Context, devotional: DevotionalMeta, day: Int) {
+        showNotification(
+            context = context,
+            notificationId = NOTIFICATION_ID,
+            day = day,
+            title = context.getString(devotional.titleResId),
+            text = context.getString(R.string.notification_daily_reminder_text, day)
+        )
+    }
+
+    /** Positive, non-loss-framed nudge - see specs/smart-prayer-reminder and CLAUDE.md §2.6. */
+    fun showEveningCheckIn(context: Context, devotional: DevotionalMeta, day: Int) {
+        showNotification(
+            context = context,
+            notificationId = EVENING_CHECK_IN_NOTIFICATION_ID,
+            day = day,
+            title = context.getString(devotional.titleResId),
+            text = context.getString(R.string.notification_evening_check_in_text, day)
+        )
+    }
+
+    /** Same channel for both notifications, by owner's choice - see specs/smart-prayer-reminder. */
+    private fun showNotification(
+        context: Context,
+        notificationId: Int,
+        day: Int,
+        title: String,
+        text: String
+    ) {
         ensureChannel(context)
 
         val contentIntent = Intent(context, MainActivity::class.java).apply {
@@ -33,15 +62,15 @@ object NovenaNotifier {
         }
         val pendingIntent = PendingIntent.getActivity(
             context,
-            day,
+            notificationId * 1000 + day,
             contentIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(context.getString(devotional.titleResId))
-            .setContentText(context.getString(R.string.notification_daily_reminder_text, day))
+            .setContentTitle(title)
+            .setContentText(text)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -54,7 +83,7 @@ object NovenaNotifier {
             ) == PackageManager.PERMISSION_GRANTED
 
         if (canPost) {
-            NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+            NotificationManagerCompat.from(context).notify(notificationId, notification)
         }
     }
 

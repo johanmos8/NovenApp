@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
@@ -27,6 +28,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -86,8 +92,10 @@ class MainActivity : ComponentActivity() {
 /**
  * The app's 3 top-level destinations, shown as a persistent bottom bar instead of a
  * hamburger drawer - there were never more than 3 real destinations (today's prayer,
- * villancicos, about/rate), and the day picker that used to live in the drawer is now
- * a [com.mirkwood.novenapp.presentation.components.DayStrip] directly on the Novena tab.
+ * villancicos, about/rate). Jumping to a specific day used to live in a drawer, then a
+ * day-chip row on the Novena tab; both were removed once the Camino card made "today"
+ * the only entry point, with day-to-day movement handled inside DayScreen's own
+ * prev/next controls instead (see specs/day-locked-state).
  */
 private data class BottomNavDestination(
     val route: String,
@@ -113,7 +121,7 @@ private val bottomNavDestinations = listOf(
     )
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun MyApp(
     pendingTargetDay: Int? = null,
@@ -126,8 +134,18 @@ fun MyApp(
         currentNavBackStackEntry?.destination?.route ?: NavigationScreen.HomeScreen.route
     val viewModel: MainViewModel = koinViewModel()
     var currentSongTitle by remember { mutableStateOf("Villancicos") }
+    // Null until PrayerScreen reports the page it's on, so the static fallback label
+    // shows instead of a blank/flashing title on first entry to DayScreen.
+    var currentStageTitle by remember { mutableStateOf<String?>(null) }
 
     val isTopLevelRoute = bottomNavDestinations.any { it.route == currentRoute }
+
+    // Phones keep the existing floating-pill NavigationBar exactly as designed; only
+    // medium/expanded windows (tablets, unfolded foldables) switch to a rail/drawer via
+    // NavigationSuiteScaffold - see specs/adaptive-nav-layout for why this isn't unified
+    // into one container for every window size.
+    val navSuiteType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
+    val isCompactWidth = navSuiteType == NavigationSuiteType.NavigationBar
 
     // A notification or the home-screen widget was tapped with a specific day to
     // open - reuses the same route-building logic as the in-app day picker.
@@ -147,102 +165,136 @@ fun MyApp(
         }
     }
 
-    NovenAppTheme {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            topBar = {
-                when (currentRoute) {
-                    NavigationScreen.HomeScreen.route -> NovenAppBar(
-                        sectionTitle = stringResource(R.string.app_bar_section_home)
-                    )
-                    NavigationScreen.LyricsScreen.route -> NovenAppBar(
-                        sectionTitle = stringResource(R.string.app_bar_section_lyrics)
-                    )
-                    NavigationScreen.MoreScreen.route -> NovenAppBar(
-                        sectionTitle = stringResource(R.string.app_bar_section_more)
-                    )
-                    NavigationScreen.DayScreen.route -> NovenAppBar(
-                        sectionTitle = stringResource(R.string.app_bar_section_reading),
-                        onBackClick = { navController.popBackStack() }
-                    )
-                    NavigationScreen.LyricsViewScreen.route, NavigationScreen.AboutUsScreen.route -> {
-                        TopAppBar(
-                            title = {
-                                Text(
-                                    if (currentRoute == NavigationScreen.LyricsViewScreen.route) {
-                                        currentSongTitle
-                                    } else {
-                                        stringResource(R.string.text_about_us)
-                                    }
-                                )
-                            },
-                            navigationIcon = {
-                                IconButton(onClick = { navController.popBackStack() }) {
-                                    Icon(
-                                        Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = stringResource(R.string.btn_back)
-                                    )
-                                }
+    val topBar: @Composable () -> Unit = {
+        when (currentRoute) {
+            NavigationScreen.HomeScreen.route -> NovenAppBar(
+                sectionTitle = stringResource(R.string.app_bar_section_home)
+            )
+            NavigationScreen.LyricsScreen.route -> NovenAppBar(
+                sectionTitle = stringResource(R.string.app_bar_section_lyrics)
+            )
+            NavigationScreen.MoreScreen.route -> NovenAppBar(
+                sectionTitle = stringResource(R.string.app_bar_section_more)
+            )
+            NavigationScreen.DayScreen.route -> NovenAppBar(
+                sectionTitle = currentStageTitle ?: stringResource(R.string.app_bar_section_reading),
+                onBackClick = { navController.popBackStack() }
+            )
+            NavigationScreen.LyricsViewScreen.route, NavigationScreen.AboutUsScreen.route -> {
+                TopAppBar(
+                    title = {
+                        Text(
+                            if (currentRoute == NavigationScreen.LyricsViewScreen.route) {
+                                currentSongTitle
+                            } else {
+                                stringResource(R.string.text_about_us)
                             }
                         )
-                    }
-                }
-            },
-            bottomBar = {
-                if (isTopLevelRoute) {
-                    // A regular Material 3 NavigationBar, but wrapped in a rounded,
-                    // elevated Surface with side margins so it reads as a bar floating
-                    // over the app background rather than a slab pinned to the edge.
-                    // It stays in the Scaffold bottomBar slot, so screen content is
-                    // still inset above it automatically.
-                    Surface(
-                        shape = MaterialTheme.shapes.large,
-                        color = MaterialTheme.colorScheme.surfaceContainer,
-                        tonalElevation = 3.dp,
-                        shadowElevation = 6.dp,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(horizontal = 16.dp, vertical = 12.dp)
-                    ) {
-                        NavigationBar(
-                            containerColor = Color.Transparent,
-                            windowInsets = WindowInsets(0, 0, 0, 0)
-                        ) {
-                            bottomNavDestinations.forEach { destination ->
-                                NavigationBarItem(
-                                    selected = currentRoute == destination.route,
-                                    onClick = {
-                                        navController.navigate(destination.route) {
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
-                                            }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
-                                    },
-                                    icon = destination.icon,
-                                    label = { Text(stringResource(destination.labelRes)) }
-                                )
-                            }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.btn_back)
+                            )
                         }
-                    }
-                }
-            }
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                AppNavHost(
-                    navController = navController,
-                    mainViewModel = viewModel,
-                    onSongTitleUpdated = { newTitle ->
-                        currentSongTitle = newTitle
                     }
                 )
             }
+        }
+    }
+
+    val content: @Composable (PaddingValues) -> Unit = { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            AppNavHost(
+                navController = navController,
+                mainViewModel = viewModel,
+                onSongTitleUpdated = { newTitle ->
+                    currentSongTitle = newTitle
+                },
+                onStageTitleUpdated = { newTitle ->
+                    currentStageTitle = newTitle
+                }
+            )
+        }
+    }
+
+    fun navigateToTopLevel(route: String) {
+        navController.navigate(route) {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
+    NovenAppTheme {
+        when {
+            isCompactWidth -> Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                topBar = topBar,
+                bottomBar = {
+                    if (isTopLevelRoute) {
+                        // A regular Material 3 NavigationBar, but wrapped in a rounded,
+                        // elevated Surface with side margins so it reads as a bar floating
+                        // over the app background rather than a slab pinned to the edge.
+                        // It stays in the Scaffold bottomBar slot, so screen content is
+                        // still inset above it automatically.
+                        Surface(
+                            shape = MaterialTheme.shapes.large,
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            tonalElevation = 3.dp,
+                            shadowElevation = 6.dp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .navigationBarsPadding()
+                                .padding(horizontal = 16.dp, vertical = 12.dp)
+                        ) {
+                            NavigationBar(
+                                containerColor = Color.Transparent,
+                                windowInsets = WindowInsets(0, 0, 0, 0)
+                            ) {
+                                bottomNavDestinations.forEach { destination ->
+                                    NavigationBarItem(
+                                        selected = currentRoute == destination.route,
+                                        onClick = { navigateToTopLevel(destination.route) },
+                                        icon = destination.icon,
+                                        label = { Text(stringResource(destination.labelRes)) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+                content = content
+            )
+
+            // Medium/expanded window (tablet, unfolded foldable): only show the
+            // rail/drawer around top-level destinations, matching the phone layout's
+            // rule that stack screens (Day, Lyrics view, About) render with no nav
+            // container of their own.
+            isTopLevelRoute -> NavigationSuiteScaffold(
+                navigationSuiteItems = {
+                    bottomNavDestinations.forEach { destination ->
+                        item(
+                            selected = currentRoute == destination.route,
+                            onClick = { navigateToTopLevel(destination.route) },
+                            icon = destination.icon,
+                            label = { Text(stringResource(destination.labelRes)) }
+                        )
+                    }
+                },
+                layoutType = navSuiteType
+            ) {
+                Scaffold(modifier = Modifier.fillMaxSize(), topBar = topBar, content = content)
+            }
+
+            else -> Scaffold(modifier = Modifier.fillMaxSize(), topBar = topBar, content = content)
         }
     }
 }

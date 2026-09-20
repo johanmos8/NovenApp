@@ -13,6 +13,7 @@ android {
         minSdk = 28
         targetSdk = 36
         versionCode = 12
+        versionName = project.properties["VERSION_NAME"].toString()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -67,6 +68,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.material3.adaptive.navigation.suite)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.ui.text.android)
     implementation(libs.androidx.runtime.livedata)

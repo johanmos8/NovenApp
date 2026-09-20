@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches ui/theme/Color.kt's DarkBackground exactly (light mode's value lives in
+         values/colors.xml), so the splash hands off to the app's first real screen with
+         no visible color seam in dark mode either. -->
+    <color name="splash_background">#2F3036</color>
+</resources>

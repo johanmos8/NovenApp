@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -33,7 +32,6 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.NovenaAction
-import com.mirkwood.novenapp.presentation.components.DayStrip
 import com.mirkwood.novenapp.presentation.model.devotional.DevotionalCatalog
 import com.mirkwood.novenapp.presentation.model.devotional.DevotionalMeta
 import com.mirkwood.novenapp.presentation.state.NovenaViewState
@@ -75,25 +73,15 @@ internal fun HomeScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // The only entry point into a day from Home is "today" (or day 1 while
+            // browsing outside the active window) - day-to-day movement from there on
+            // is handled inside DayScreen itself via prev/next arrows, not a picker
+            // here. See specs/day-locked-state for why the day-chip row was removed.
             JourneyCard(
                 devotionalTitle = stringResource(devotional.titleResId),
                 status = journeyStatus,
                 onContinue = { day -> onEvent(NovenaAction.GoToDay(day)) },
                 onPreview = { onEvent(NovenaAction.GoToDay(1)) }
-            )
-
-            Text(
-                text = stringResource(R.string.journey_all_days_label),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(top = 8.dp, start = 4.dp)
-            )
-            DayStrip(
-                totalDays = devotional.totalDays,
-                currentDay = viewState.currentDay,
-                completedDays = completedDays,
-                onDaySelected = { day -> onEvent(NovenaAction.GoToDay(day)) },
-                modifier = Modifier.fillMaxWidth()
             )
         }
     }

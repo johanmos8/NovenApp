@@ -6,13 +6,12 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.model.MainPrayer
@@ -25,11 +24,19 @@ fun PrayerDialog(
 ) {
     AlertDialog(
         onDismissRequest = { onDismiss() },
-        title = { Text(text = stringResource(prayer.titleRes), fontWeight = FontWeight.Bold) },
+        title = {
+            Text(
+                text = stringResource(prayer.titleRes),
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
         text = {
             Box(modifier = Modifier.wrapContentHeight()) {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    Text(text = stringResource(prayer.contentRes), fontSize = 18.sp)
+                    Text(
+                        text = stringResource(prayer.contentRes),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
             }
         },

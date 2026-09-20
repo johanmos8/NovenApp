@@ -16,27 +16,31 @@ import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 
 /**
- * Schedules two independent self-perpetuating work chains: [DailyNovenaReminderWorker]
- * at 9am (shows the reminder notification) and [WidgetMidnightRefreshWorker] at
- * midnight (keeps the home-screen widget's day number accurate from the moment the
- * calendar rolls over, instead of waiting for the 9am worker or the OS's own inexact
- * ~24h widget update timer). Each run reschedules its own chain for the next
- * occurrence. [scheduleIfNeeded] is meant to be called on every app start - it's a
- * no-op (via [ExistingWorkPolicy.KEEP]) whenever a chain is already running, so it
- * only actually re-arms things the first time the app is opened near/during a new
- * season.
+ * Schedules three independent self-perpetuating work chains: [DailyNovenaReminderWorker]
+ * at 9am (shows the reminder notification), [EveningCheckInWorker] at 8pm (a gentle
+ * nudge only if today's day is still unprayed - see specs/smart-prayer-reminder), and
+ * [WidgetMidnightRefreshWorker] at midnight (keeps the home-screen widget's day number
+ * accurate from the moment the calendar rolls over, instead of waiting for the 9am
+ * worker or the OS's own inexact ~24h widget update timer). Each run reschedules its
+ * own chain for the next occurrence. [scheduleIfNeeded] is meant to be called on every
+ * app start - it's a no-op (via [ExistingWorkPolicy.KEEP]) whenever a chain is already
+ * running, so it only actually re-arms things the first time the app is opened
+ * near/during a new season.
  */
 object NovenaReminderScheduler : KoinComponent {
 
     private val repository: DevotionalRepository by inject()
 
     private const val REMINDER_WORK_NAME = "novena_daily_reminder"
+    private const val EVENING_CHECK_IN_WORK_NAME = "novena_evening_check_in"
     private const val WIDGET_REFRESH_WORK_NAME = "novena_widget_midnight_refresh"
     private const val REMINDER_HOUR = 9
+    private const val EVENING_CHECK_IN_HOUR = 20
     private const val WIDGET_REFRESH_HOUR = 0
 
     fun scheduleIfNeeded(context: Context) {
         scheduleReminder(context, LocalDate.now(), ExistingWorkPolicy.KEEP)
+        scheduleEveningCheckIn(context, LocalDate.now(), ExistingWorkPolicy.KEEP)
         scheduleWidgetRefresh(context, LocalDate.now(), ExistingWorkPolicy.KEEP)
     }
 
@@ -46,6 +50,14 @@ object NovenaReminderScheduler : KoinComponent {
         policy: ExistingWorkPolicy = ExistingWorkPolicy.REPLACE
     ) {
         enqueue<DailyNovenaReminderWorker>(context, REMINDER_WORK_NAME, REMINDER_HOUR, from, policy)
+    }
+
+    fun scheduleEveningCheckIn(
+        context: Context,
+        from: LocalDate,
+        policy: ExistingWorkPolicy = ExistingWorkPolicy.REPLACE
+    ) {
+        enqueue<EveningCheckInWorker>(context, EVENING_CHECK_IN_WORK_NAME, EVENING_CHECK_IN_HOUR, from, policy)
     }
 
     fun scheduleWidgetRefresh(

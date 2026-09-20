@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="splash_background">#FAFAFA</color>
+    <!-- Matches ui/theme/Color.kt's LightBackground exactly, so the splash hands off to
+         the app's first real screen with no visible color seam. -->
+    <color name="splash_background">#FAF8FF</color>
 </resources>

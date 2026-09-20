@@ -4,8 +4,6 @@
     <string name="novena_aguinaldos_title">Novena of Aguinaldos</string>
     <string name="text_ir_a">Go to day %s</string>
     <string name="text_consideration">Consideration for day %d</string>
-    <string name="text_dia">Day %d</string>
-    <string name="text_dia_locked">Day %d, locked</string>
     <string name="text_navidad_en">Christmas in:</string>
     <string name="text_navidad_en_yy_mm_dd">"%d days, %d hours, %d minutes, %d seconds"</string>
     <string name="gozos_title">Gozos</string>
@@ -56,14 +54,16 @@
     <string name="notification_channel_name">Daily novena reminder</string>
     <string name="notification_channel_description">Lets you know which day of the Novena de Aguinaldos it is, December 16 through 24.</string>
     <string name="notification_daily_reminder_text">Today is Day %d of the novena. Tap to pray it.</string>
+    <string name="notification_evening_check_in_text">Day %d\'s prayer is still waiting for you. Tap to pray it.</string>
 
     <string name="widget_description">Shows the current novena day or the countdown to Christmas.</string>
     <string name="widget_today_label">Day %d</string>
     <string name="widget_countdown_label">%d days to go</string>
 
     <string name="error_devotional_content_unavailable">This content isn\'t available right now.</string>
-    <string name="day_strip_locked_message">This day isn\'t available yet</string>
     <string name="day_preview_banner">You\'re getting an early look - this day hasn\'t started yet</string>
+    <string name="content_description_previous_day">Previous day</string>
+    <string name="content_description_next_day">Next day</string>
     <string name="home_explore_all_days">Explore any day of the novena</string>
 
     <!-- Home "Journey" feed. See docs/home-journey-redesign.md -->
@@ -79,7 +79,6 @@
     <string name="journey_read_again">Read again</string>
     <string name="journey_completed_summary">%1$d of %2$d days · Completed</string>
     <string name="journey_progress_content_description">%1$d of %2$d days prayed</string>
-    <string name="journey_all_days_label">Go to a day</string>
     <string name="mark_day_as_prayed">Mark Day %d as prayed</string>
     <string name="day_marked_as_prayed">Day %d prayed</string>
     <string name="gozo_mark_read">Mark verse %d as read</string>

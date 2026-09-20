@@ -19,11 +19,10 @@ import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
 
 /**
- * A row of [totalSegments] equal bars - the compact, non-interactive counterpart to
- * [DayStrip]. Segments whose 1-based index is in [filledSegments] read as "done" (so a
- * gap shows as a gap, matching the checkmarks on the day strip); [highlightedSegment]
- * gets an outline to mark "today" while it isn't filled yet. Used by the home Camino
- * card to show novena progress at a glance without the full tappable day strip.
+ * A row of [totalSegments] equal bars. Segments whose 1-based index is in
+ * [filledSegments] read as "done"; [highlightedSegment] gets an outline to mark
+ * "today" while it isn't filled yet. Used by the home Camino card to show novena
+ * progress at a glance.
  */
 @Composable
 internal fun SegmentedProgressIndicator(

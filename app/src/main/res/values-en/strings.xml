@@ -58,9 +58,18 @@
 
     <string name="widget_description">Shows the current novena day or the countdown to Christmas.</string>
     <string name="widget_today_label">Day %d</string>
-    <string name="widget_countdown_label">%d days to go</string>
+    <plurals name="widget_countdown_label">
+        <item quantity="one">%d day to go</item>
+        <item quantity="other">%d days to go</item>
+    </plurals>
+    <!-- Separate from the widget's label so the two surfaces can be reworded independently. -->
+    <plurals name="journey_countdown_label">
+        <item quantity="one">%d day to go</item>
+        <item quantity="other">%d days to go</item>
+    </plurals>
 
     <string name="error_devotional_content_unavailable">This content isn\'t available right now.</string>
+    <string name="error_song_unavailable">This song isn\'t available.</string>
     <string name="day_preview_banner">You\'re getting an early look - this day hasn\'t started yet</string>
     <string name="content_description_previous_day">Previous day</string>
     <string name="content_description_next_day">Next day</string>
@@ -79,6 +88,13 @@
     <string name="journey_read_again">Read again</string>
     <string name="journey_completed_summary">%1$d of %2$d days · Completed</string>
     <string name="journey_progress_content_description">%1$d of %2$d days prayed</string>
+    <string name="devotional_notifications_enabled">Alerts turned on for %1$s</string>
+    <string name="devotional_notifications_disabled">Alerts turned off for %1$s</string>
+    <string name="content_description_notifications_blocked">Notifications blocked in Settings</string>
+    <string name="devotional_notifications_blocked">Alerts for %1$s turned on, but the app\'s notifications are blocked: enable them in Settings</string>
+    <string name="content_description_notifying_badge">%1$s is active</string>
+    <string name="devotional_active_label">Active</string>
+    <string name="content_description_toggle_notifications">Press and hold to turn notifications on or off for %1$s</string>
     <string name="mark_day_as_prayed">Mark Day %d as prayed</string>
     <string name="day_marked_as_prayed">Day %d prayed</string>
     <string name="gozo_mark_read">Mark verse %d as read</string>
@@ -89,6 +105,7 @@
     <string name="content_description_decrease_text_size">Decrease text size</string>
     <string name="content_description_increase_text_size">Increase text size</string>
     <string name="prayer_listen">Listen</string>
+    <string name="prayer_voice_unavailable">No voice is available to read aloud on this device. Check your text-to-speech settings.</string>
     <string name="prayer_stop">Stop</string>
     <string name="prayer_stage_label">Stage %1$d: %2$s</string>
     <string name="prayer_stage_minutes">~%d min</string>

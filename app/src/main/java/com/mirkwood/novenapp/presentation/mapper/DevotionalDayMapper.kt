@@ -1,109 +1,61 @@
 package com.mirkwood.novenapp.presentation.mapper
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
-import com.mirkwood.novenapp.R
-import com.mirkwood.novenapp.presentation.model.Dia
-import com.mirkwood.novenapp.presentation.model.Novena
-import com.mirkwood.novenapp.presentation.model.NovenaTab
+import com.mirkwood.novenapp.presentation.model.ContentBlockData
+import com.mirkwood.novenapp.presentation.model.DevotionalContent
+import com.mirkwood.novenapp.presentation.model.DevotionalDayContent
+import com.mirkwood.novenapp.presentation.model.Gozo
 import com.mirkwood.novenapp.presentation.model.Prayer
-import com.mirkwood.novenapp.presentation.model.devotional.DevotionalImages
-import com.mirkwood.novenapp.presentation.model.devotional.DevotionalMeta
 
 /**
- * Turns a devotional's raw JSON content + its catalog artwork into the ordered list of
- * [Prayer] pages the day screen pages through. Used to live inline in `AppNavHost`'s
- * `DayScreen` composable, hardcoding one novena's drawables and titles directly in the
- * nav graph; pulling it out here means the nav graph stays generic across devotionals.
+ * Turns a devotional's generic content blocks + its catalog artwork into the ordered
+ * list of [Prayer] pages the day screen pages through. Generic across any devotional
+ * shape - no hardcoded field names or fixed page count, unlike the Christmas-specific
+ * assembly this replaced - see specs/generic-devotional-content-model.
  *
- * Takes the already-resolved [dayContent] rather than indexing `content.dias` itself,
- * so an out-of-range day (a stale deep link, or a catalog `totalDays` that drifts from
- * the JSON's actual day count) is the caller's bounds-check to make, not a crash buried
- * in here.
+ * Page order: the day's own blocks first, then [DevotionalContent.everyDayBlocks],
+ * then [DevotionalContent.closingBlocks] - this reproduces the existing Novena de
+ * Aguinaldos's page order (reflection, then the 3 daily prayers + Gozos, then the
+ * closing prayer to the Child Jesus) without hardcoding that any devotional has to
+ * follow the same shape.
  */
-@Composable
 internal fun buildDevotionalDayPrayers(
-    content: Novena,
-    dayContent: Dia,
-    devotional: DevotionalMeta,
-    currentDay: Int
-): List<Prayer> = buildDayPrayers(content, dayContent, currentDay, devotional.images)
+    content: DevotionalContent,
+    dayContent: DevotionalDayContent,
+    images: Map<String, Int>
+): List<Prayer> = buildDayPrayers(dayContent, content.everyDayBlocks, content.closingBlocks, images)
 
 /**
  * The same page order as [buildDevotionalDayPrayers] but text-only: every reading is a
- * [Prayer.Simple] and the Gozos page carries no hero image. For devotionals that ship
+ * [Prayer.Simple] and the litany page carries no hero image. For devotionals that ship
  * without artwork, or a plain-text reading mode where the imagery would only get in the
  * way of the prayer text.
  */
-@Composable
 internal fun buildDevotionalDayPrayersWithoutImages(
-    content: Novena,
-    dayContent: Dia,
-    currentDay: Int
-): List<Prayer> = buildDayPrayers(content, dayContent, currentDay, images = null)
+    content: DevotionalContent,
+    dayContent: DevotionalDayContent
+): List<Prayer> = buildDayPrayers(dayContent, content.everyDayBlocks, content.closingBlocks, images = null)
 
-/**
- * Shared page assembly for both builders. When [images] is null each reading becomes a
- * [Prayer.Simple] instead of a [Prayer.WithImage], and the Gozos page drops its hero.
- */
-@Composable
 private fun buildDayPrayers(
-    content: Novena,
-    dayContent: Dia,
-    currentDay: Int,
-    images: DevotionalImages?
+    dayContent: DevotionalDayContent,
+    everyDayBlocks: List<ContentBlockData>,
+    closingBlocks: List<ContentBlockData>,
+    images: Map<String, Int>?
 ): List<Prayer> {
-    fun reading(
-        text: String,
-        image: Int?,
-        title: String,
-        finalPrayers: Boolean = false
-    ): Prayer = if (image != null) {
-        Prayer.WithImage(text, image, title, finalPrayers)
-    } else {
-        Prayer.Simple(text, title, finalPrayers)
-    }
+    val orderedBlocks = dayContent.blocks + everyDayBlocks + closingBlocks
+    return orderedBlocks.map { it.toPrayer(images) }
+}
 
-    return buildList {
-        add(
-            reading(
-                dayContent.reflexion,
-                images?.dailyReflection,
-                stringResource(R.string.text_consideration, currentDay)
-            )
+private fun ContentBlockData.toPrayer(images: Map<String, Int>?): Prayer {
+    val image = imageKey?.let { images?.get(it) }
+    return when (type) {
+        ContentBlockData.TYPE_LITANY -> Prayer.AllGozos(
+            gozos = items.orEmpty().mapIndexed { index, text -> Gozo(id = index + 1, texto = text) },
+            imageRes = image
         )
-        add(
-            reading(
-                content.general.oracion_todos_los_dias,
-                images?.dailyPrayer,
-                stringResource(NovenaTab.OracionTodosLosDias.titleResId),
-                true
-            )
-        )
-        add(
-            reading(
-                content.general.oracion_virgen_maria,
-                images?.virgenMaria,
-                stringResource(NovenaTab.OracionALaVirgen.titleResId),
-                true
-            )
-        )
-        add(
-            reading(
-                content.general.oracion_san_jose,
-                images?.sanJose,
-                stringResource(NovenaTab.OracionSanJose.titleResId),
-                true
-            )
-        )
-        add(Prayer.AllGozos(content.gozos, images?.gozos))
-        add(
-            reading(
-                content.general.oracion_niño_jesus,
-                images?.ninoJesus,
-                stringResource(NovenaTab.OracionAJesus.titleResId),
-                true
-            )
-        )
+        else -> if (image != null) {
+            Prayer.WithImage(text.orEmpty(), image, title, finalPrayers)
+        } else {
+            Prayer.Simple(text.orEmpty(), title, finalPrayers)
+        }
     }
 }

@@ -1,6 +1,6 @@
 package com.mirkwood.novenapp.data.devotional
 
-import com.mirkwood.novenapp.presentation.model.Novena
+import com.mirkwood.novenapp.presentation.model.DevotionalContent
 import com.mirkwood.novenapp.presentation.model.devotional.DevotionalMeta
 
 /**
@@ -13,5 +13,5 @@ import com.mirkwood.novenapp.presentation.model.devotional.DevotionalMeta
 interface DevotionalRepository {
     fun getCatalog(): List<DevotionalMeta>
     fun getDevotional(id: String): DevotionalMeta
-    fun loadContent(devotionalId: String, language: String): Novena?
+    fun loadContent(devotionalId: String, language: String): DevotionalContent?
 }

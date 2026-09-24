@@ -1,5 +1,11 @@
 package com.mirkwood.novenapp.presentation.components
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.media.MediaPlayer
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -33,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -47,6 +54,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.model.Gozo
@@ -75,7 +84,7 @@ internal fun GozosScreen(
     val isCompactWidth = configuration.screenWidthDp < 600
 
     var musicPlaying by rememberSaveable { mutableStateOf(false) }
-    GozosSoundtrack(playing = musicPlaying)
+    GozosSoundtrack(playing = musicPlaying, onPaused = { musicPlaying = false })
 
     val toggleMusic = { musicPlaying = !musicPlaying }
 
@@ -240,32 +249,103 @@ private fun MusicToggleButton(
 }
 
 /**
- * Owns the single looping [MediaPlayer] for the Gozos soundtrack. Creating, starting,
- * pausing and releasing it all happen inside effects rather than in the composition
- * body, so a recomposition can't re-trigger playback and the native player is always
- * released when the page is left.
+ * Drives the Gozos soundtrack from [playing]. Starting, pausing and releasing happen
+ * inside effects rather than in the composition body, so a recomposition can't
+ * re-trigger playback and the native player is always released when the page is left.
+ *
+ * The music pauses - and stays paused, calling [onPaused] so the button agrees - when
+ * the app goes to the background, or when another app takes audio focus (a call,
+ * another music app). Rotation is not treated as leaving the app. See P1-10 in
+ * specs/code-audit-v3.
  */
 @Composable
-private fun GozosSoundtrack(playing: Boolean) {
+private fun GozosSoundtrack(playing: Boolean, onPaused: () -> Unit) {
     val context = LocalContext.current
-    val player = remember {
-        MediaPlayer.create(context, MainModule.Instrument.Music.soundRes)?.apply {
-            isLooping = true
-        }
+    val currentOnPaused by rememberUpdatedState(onPaused)
+    val soundtrack = remember { SoundtrackPlayer(context.applicationContext) { currentOnPaused() } }
+
+    DisposableEffect(soundtrack) {
+        onDispose { soundtrack.release() }
     }
 
-    DisposableEffect(player) {
-        onDispose { player?.release() }
+    LaunchedEffect(playing, soundtrack) {
+        if (playing) soundtrack.play() else soundtrack.pause()
     }
 
-    LaunchedEffect(playing, player) {
-        val mediaPlayer = player ?: return@LaunchedEffect
-        if (playing && !mediaPlayer.isPlaying) {
-            mediaPlayer.start()
-        } else if (!playing && mediaPlayer.isPlaying) {
-            mediaPlayer.pause()
+    // Paused directly here, not only through `playing`: recomposition isn't guaranteed
+    // to run while the app is in the background, so the state change alone could
+    // leave the music playing.
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+        if (context.findActivity()?.isChangingConfigurations != true) {
+            soundtrack.pause()
+            currentOnPaused()
         }
     }
+}
+
+/**
+ * The looping soundtrack player plus its audio focus. The [MediaPlayer] is only created
+ * on the first [play], not when the Gozos page first shows, since most visits never
+ * play the music (P2-3 in specs/code-audit-v3).
+ */
+private class SoundtrackPlayer(
+    private val context: Context,
+    private val onFocusLost: () -> Unit
+) {
+    private var player: MediaPlayer? = null
+    private val audioManager = context.getSystemService(AudioManager::class.java)
+    private val focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+        .setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
+        )
+        .setOnAudioFocusChangeListener { change ->
+            // "Can duck" losses are handled by the system lowering the volume.
+            if (change == AudioManager.AUDIOFOCUS_LOSS ||
+                change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT
+            ) {
+                pause()
+                onFocusLost()
+            }
+        }
+        .build()
+
+    fun play() {
+        if (audioManager.requestAudioFocus(focusRequest) != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            // e.g. during a phone call: don't play over it, and flip the button back.
+            onFocusLost()
+            return
+        }
+        val mediaPlayer = player
+            ?: MediaPlayer.create(context, MainModule.Instrument.Music.soundRes)
+                ?.apply { isLooping = true }
+                ?.also { player = it }
+        if (mediaPlayer == null) {
+            audioManager.abandonAudioFocusRequest(focusRequest)
+            onFocusLost()
+            return
+        }
+        if (!mediaPlayer.isPlaying) mediaPlayer.start()
+    }
+
+    fun pause() {
+        player?.takeIf { it.isPlaying }?.pause()
+        audioManager.abandonAudioFocusRequest(focusRequest)
+    }
+
+    fun release() {
+        player?.release()
+        player = null
+        audioManager.abandonAudioFocusRequest(focusRequest)
+    }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 /**

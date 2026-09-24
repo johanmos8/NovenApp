@@ -55,7 +55,10 @@ fun ReadingScreen(
                     fontSize = 18.sp * textScale,
                     lineHeight = 28.sp * textScale,
                     fontWeight = FontWeight.Normal,
-                    textAlign = TextAlign.Justify
+                    // Justify stretches word spacing unevenly at larger scaled font
+                    // sizes, hurting readability - Start reads more naturally at every
+                    // size (P4-9 in specs/code-audit-v3).
+                    textAlign = TextAlign.Start
                 ),
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.onBackground

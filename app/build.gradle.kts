@@ -60,6 +60,7 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
@@ -93,6 +94,7 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
     //Local day-completion tracking
     implementation(libs.androidx.datastore.preferences)
     implementation(project(":compose-preview"))

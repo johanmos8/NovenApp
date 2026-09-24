@@ -17,14 +17,13 @@ object DevotionalCatalog {
         titleResId = R.string.novena_aguinaldos_title,
         contentFileEs = "content_es.json",
         contentFileEn = "content_en.json",
-        images = DevotionalImages(
-            cover = R.drawable.novena,
-            dailyReflection = R.drawable.novena,
-            dailyPrayer = R.drawable.pesebre,
-            virgenMaria = R.drawable.virgen_maria,
-            sanJose = R.drawable.san_jose,
-            gozos = R.drawable.novena_music,
-            ninoJesus = R.drawable.baby_jesus
+        images = mapOf(
+            "dailyReflection" to R.drawable.novena,
+            "dailyPrayer" to R.drawable.pesebre,
+            "virgenMaria" to R.drawable.virgen_maria,
+            "sanJose" to R.drawable.san_jose,
+            "gozos" to R.drawable.novena_music,
+            "ninoJesus" to R.drawable.baby_jesus
         ),
         schedule = DevotionalSchedule.FixedRange(
             startMonth = 12,

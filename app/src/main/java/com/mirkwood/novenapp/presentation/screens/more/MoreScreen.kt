@@ -1,8 +1,10 @@
 package com.mirkwood.novenapp.presentation.screens.more
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,11 +25,13 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -39,11 +43,15 @@ import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.BuildConfig
 import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.debug.DebugClock
+import com.mirkwood.novenapp.debug.DebugNotificationTrigger
 import com.mirkwood.novenapp.debug.DebugSettings
 import com.mirkwood.novenapp.presentation.components.CopyRightFooter
 import com.mirkwood.novenapp.presentation.model.devotional.DevotionalCatalog
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
+import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 /**
  * The tab "everything that isn't the daily prayer or the carols" lives on - the one
@@ -73,6 +81,7 @@ internal fun MoreScreen(
         )
         if (BuildConfig.DEBUG) {
             DebugDateSection()
+            DebugNotificationsSection()
         }
         CopyRightFooter()
     }
@@ -96,7 +105,9 @@ private fun DebugDateSection() {
             for (day in 1..DevotionalCatalog.default.totalDays) {
                 add("Day $day" to DebugSettings.dateForNovenaDay(day))
             }
-            add("Dec 25" to DebugSettings.celebrationDate())
+            // Labelled from the catalog date itself, so it stays right if the celebration moves.
+            val celebration = DebugSettings.celebrationDate()
+            add("Celebration · ${celebration.format(DateTimeFormatter.ofPattern("MMM d", Locale.ENGLISH))}" to celebration)
         }
     }
 
@@ -138,6 +149,53 @@ private fun DebugDateSection() {
     }
 }
 
+/**
+ * Debug builds only. Fires the two reminder notifications ([DebugNotificationTrigger])
+ * immediately using [DebugClock]'s forced date, instead of waiting for the real
+ * date/hour WorkManager would use - set a "Day N" preset above first, then tap a button
+ * here to preview that day's notification content or exercise the "already prayed"
+ * skip logic. See specs/smart-prayer-reminder.
+ */
+@Composable
+private fun DebugNotificationsSection() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+    Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+        Text(
+            text = "🐞  Debug · test reminder notifications",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = "Uses the forced date above, not the real clock. Nothing fires if " +
+                "that date falls outside the novena's active range.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp, bottom = 8.dp)
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = {
+                scope.launch {
+                    val result = DebugNotificationTrigger.triggerDailyReminder(context)
+                    Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+                }
+            }) {
+                Text("Test 9am reminder")
+            }
+            OutlinedButton(onClick = {
+                scope.launch {
+                    val result = DebugNotificationTrigger.triggerEveningCheckIn(context)
+                    Toast.makeText(context, result, Toast.LENGTH_SHORT).show()
+                }
+            }) {
+                Text("Test 8pm check-in")
+            }
+        }
+    }
+}
+
 @Composable
 private fun MoreItem(text: String, icon: ImageVector, onClick: () -> Unit) {
     Row(
@@ -162,11 +220,28 @@ private fun MoreItem(text: String, icon: ImageVector, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Opens the app's Play Store page. Devices without the Play Store (Huawei, emulators
+ * without Google Play, some tablets) have nothing to handle `market://`, so this falls
+ * back to the web listing. If there's no browser either, the tap does nothing rather
+ * than crashing the app.
+ */
 fun openPlayStore(context: Context) {
-    val uri = Uri.parse("market://details?id=${context.packageName}")
-    val intent = Intent(Intent.ACTION_VIEW, uri)
-    intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-    context.startActivity(intent)
+    val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${context.packageName}"))
+    marketIntent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_NEW_DOCUMENT or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+    try {
+        context.startActivity(marketIntent)
+    } catch (_: ActivityNotFoundException) {
+        val webIntent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}")
+        )
+        try {
+            context.startActivity(webIntent)
+        } catch (_: ActivityNotFoundException) {
+            // Neither a store nor a browser is installed - nothing to open.
+        }
+    }
 }
 
 @PreviewAllPhones

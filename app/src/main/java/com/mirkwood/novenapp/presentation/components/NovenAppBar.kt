@@ -34,6 +34,9 @@ import com.mirkwood.novenapp.ui.theme.NovenAppTheme
  * More) show notifications/profile on the trailing side; screens reached by drilling in
  * (the day reading) pass [onBackClick] instead, which swaps those actions for a back arrow.
  */
+/** The Profile action has no purpose yet in an account-less app - hidden until the owner defines one. */
+private const val SHOW_PROFILE_ACTION = false
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NovenAppBar(
@@ -84,12 +87,16 @@ fun NovenAppBar(
                         contentDescription = stringResource(R.string.content_description_notifications)
                     )
                 }
-                IconButton(onClick = onProfileClick) {
-                    Icon(
-                        imageVector = Icons.Filled.AccountCircle,
-                        contentDescription = stringResource(R.string.content_description_profile),
-                        modifier = Modifier.size(30.dp)
-                    )
+                // TODO(owner): define what Profile does (Q7 in specs/code-audit-v3). Hidden,
+                // not removed, until then - flip SHOW_PROFILE_ACTION back on once it has a purpose.
+                if (SHOW_PROFILE_ACTION) {
+                    IconButton(onClick = onProfileClick) {
+                        Icon(
+                            imageVector = Icons.Filled.AccountCircle,
+                            contentDescription = stringResource(R.string.content_description_profile),
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
                 }
             }
         }

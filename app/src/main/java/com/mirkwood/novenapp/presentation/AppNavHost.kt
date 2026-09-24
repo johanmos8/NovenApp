@@ -1,16 +1,16 @@
 package com.mirkwood.novenapp.presentation
 
-import android.util.Log
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -24,7 +24,7 @@ import androidx.navigation.navArgument
 import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.mapper.buildDevotionalDayPrayers
 import com.mirkwood.novenapp.presentation.mapper.buildDevotionalDayPrayersWithoutImages
-import com.mirkwood.novenapp.presentation.model.Novena
+import com.mirkwood.novenapp.presentation.model.DevotionalContent
 import com.mirkwood.novenapp.presentation.navigation.NavigationScreen
 import com.mirkwood.novenapp.presentation.screens.aboutus.AboutUsScreen
 import com.mirkwood.novenapp.presentation.screens.home.HomeScreen
@@ -55,11 +55,16 @@ private fun NavHostController.navigateToDevotionalDay(devotionalId: String, day:
 internal fun AppNavHost(
     navController: NavHostController = rememberNavController(),
     mainViewModel: MainViewModel = koinViewModel(),
-    onSongTitleUpdated: (String) -> Unit,
-    onStageTitleUpdated: (String) -> Unit = {}
+    // Both title callbacks carry the reporting back-stack entry's id, so the app bar only
+    // shows a title while that same entry is current - a new DayScreen or lyrics entry
+    // never inherits the previous one's title (P1-6 in specs/code-audit-v3).
+    onSongTitleUpdated: (entryId: String, title: String) -> Unit,
+    onStageTitleUpdated: (entryId: String, title: String) -> Unit = { _, _ -> }
 ) {
-    val state by mainViewModel.state.collectAsState()
-    val completedDays by mainViewModel.completedDays.collectAsState()
+    // Lifecycle-aware: a plain collectAsState() keeps collecting (and, through it, the
+    // per-devotional DataStore flows underneath) while the app is backgrounded - see
+    // the P2-5 finding in specs/code-audit-v3.
+    val homeDevotionals by mainViewModel.homeDevotionals.collectAsStateWithLifecycle()
     val lyricsViewModel: LyricsViewModel = koinViewModel()
     NavHost(
         navController = navController,
@@ -67,11 +72,15 @@ internal fun AppNavHost(
     ) {
 
         composable(NavigationScreen.HomeScreen.route) {
+            val context = LocalContext.current
             HomeScreen(
-                viewState = state,
-                devotional = mainViewModel.activeDevotional,
-                completedDays = completedDays,
-                onEvent = { event -> mainViewModel.onAction(event, navController) }
+                devotionals = homeDevotionals,
+                onEvent = { event -> mainViewModel.onAction(event, navController) },
+                onToggleNotification = { devotionalId, isCurrentlyNotifying ->
+                    mainViewModel.toggleNotification(context, devotionalId, isCurrentlyNotifying)
+                },
+                hasAutoPromptedPermission = mainViewModel::hasAutoPromptedNotificationPermission,
+                onAutoPromptedPermission = mainViewModel::markNotificationPermissionAutoPrompted
             )
         }
         composable(
@@ -87,8 +96,10 @@ internal fun AppNavHost(
         ) { backStackEntry ->
 
             val devotionalId = backStackEntry.arguments?.getString(NavigationScreen.DayScreen.ARG_DEVOTIONAL_ID)
-                ?: mainViewModel.activeDevotional.id
+                ?: mainViewModel.defaultDevotionalId()
             val devotionalMeta = mainViewModel.getDevotional(devotionalId)
+            val completedDays by remember(devotionalId) { mainViewModel.observeCompletedDays(devotionalId) }
+                .collectAsStateWithLifecycle(initialValue = emptySet())
 
             val requestedDay = backStackEntry.arguments?.getInt(NavigationScreen.DayScreen.ARG_POSITION) ?: -1
             // Bounds-checked against the catalog before it's trusted anywhere: this is
@@ -98,9 +109,8 @@ internal fun AppNavHost(
             val novenaDay = if (requestedDay in 1..devotionalMeta.totalDays) {
                 requestedDay
             } else {
-                mainViewModel.refreshCurrentDay()
+                Util.resolveCurrentDay(devotionalMeta.schedule)
             }
-            Log.d("Test", "currentDay: $novenaDay")
             novenaDay?.let { currentDay ->
 
                 val context = LocalContext.current
@@ -108,17 +118,17 @@ internal fun AppNavHost(
 
                 // Keyed on (devotionalId, language) so rotation/theme-change recompositions
                 // don't re-read the asset and re-parse the JSON on the main thread.
-                val content by produceState<Novena?>(initialValue = null, devotionalId, language) {
+                val content by produceState<DevotionalContent?>(initialValue = null, devotionalId, language) {
                     value = withContext(Dispatchers.IO) {
                         mainViewModel.getContentFor(devotionalId, language)
                     }
                 }
 
                 val loadedContent = content
-                val dayContent = loadedContent?.dias?.getOrNull(currentDay - 1)
+                val dayContent = loadedContent?.days?.getOrNull(currentDay - 1)
                 if (loadedContent != null && dayContent != null) {
-                    //val list = buildDevotionalDayPrayers(loadedContent, dayContent, devotionalMeta, currentDay)
-                    val list = buildDevotionalDayPrayersWithoutImages(loadedContent, dayContent, currentDay)
+                    //val list = buildDevotionalDayPrayers(loadedContent, dayContent, devotionalMeta.images)
+                    val list = buildDevotionalDayPrayersWithoutImages(loadedContent, dayContent)
 
                     // Not derived from `novenaDay` above: that already falls back to
                     // today's day when the requested one is out of bounds, so it can
@@ -143,14 +153,17 @@ internal fun AppNavHost(
 
                     PrayerScreen(
                         prayers = list,
+                        deviceLanguage = language,
                         dayNumber = currentDay,
                         totalDays = devotionalMeta.totalDays,
                         isPreview = isPreview,
                         isDayCompleted = currentDay in completedDays,
-                        onToggleDayCompleted = { mainViewModel.toggleDayCompleted(currentDay) },
+                        onToggleDayCompleted = {
+                            mainViewModel.toggleDayCompleted(devotionalId, currentDay, currentDay in completedDays)
+                        },
                         onPreviousDay = onPreviousDay,
                         onNextDay = onNextDay,
-                        onStageTitleChange = onStageTitleUpdated
+                        onStageTitleChange = { title -> onStageTitleUpdated(backStackEntry.id, title) }
                     )
                 } else if (loadedContent != null) {
                     // Content loaded, but this day index doesn't exist in it (catalog's
@@ -161,8 +174,8 @@ internal fun AppNavHost(
             }
         }
         composable(NavigationScreen.LyricsScreen.route) {
-            lyricsViewModel.loadSongsFromJson(context = LocalContext.current)
-            lyricsViewModel.songs.value?.let { it1 ->
+            val songs by lyricsViewModel.songs.collectAsStateWithLifecycle()
+            songs?.let { loadedSongs ->
                 SongListScreen(
                     onAction = { songID ->
                         navController.navigate(
@@ -171,7 +184,7 @@ internal fun AppNavHost(
                             )
                         )
                     },
-                    songs = it1,
+                    songs = loadedSongs,
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -182,29 +195,22 @@ internal fun AppNavHost(
         ) { backStackEntry ->
 
             val songID = backStackEntry.arguments?.getInt("songID")
-            Log.d("Test", "songID: $songID")
-            val context = LocalContext.current
-            val selectedSong by lyricsViewModel.selectedSong.collectAsState()
+            val songs by lyricsViewModel.songs.collectAsStateWithLifecycle()
+            // Nothing renders until the list has loaded (only possible when the app is
+            // restored straight onto this screen). Once it has, the song is derived from
+            // this entry's own nav argument - never from shared "selected song" state -
+            // so the previously opened song can't flash on screen (P0-5).
+            songs?.let { loadedSongs ->
+                val song = remember(loadedSongs, songID) { loadedSongs.find { it.id == songID } }
 
-            LaunchedEffect(songID) {
-                // Si las canciones aún no se han cargado, cargarlas y luego obtener la canción
-                if (lyricsViewModel.songs.value == null) {
-                    lyricsViewModel.loadSongsFromJson(context, songID)
+                if (song != null) {
+                    LaunchedEffect(backStackEntry.id, song.title) {
+                        onSongTitleUpdated(backStackEntry.id, song.title)
+                    }
+                    LyricsScreen(lyrics = song.lyrics)
                 } else {
-                    songID?.let { lyricsViewModel.getSongById(it) }
+                    MissingContentMessage(R.string.error_song_unavailable)
                 }
-            }
-            Log.d("Test", "selectedSong: $selectedSong")
-
-            if (selectedSong != null) {
-                onSongTitleUpdated(selectedSong!!.title)
-                LyricsScreen(
-                    songTitle = selectedSong!!.title,
-                    lyrics = selectedSong!!.lyrics,
-                    onBack = { navController.popBackStack() }
-                )
-            } else {
-                Text(text = "TODO(fix)")
             }
         }
         composable(NavigationScreen.MoreScreen.route) {
@@ -224,13 +230,15 @@ internal fun AppNavHost(
 }
 
 @Composable
-private fun MissingContentMessage() {
+private fun MissingContentMessage(
+    @StringRes message: Int = R.string.error_devotional_content_unavailable
+) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = stringResource(R.string.error_devotional_content_unavailable),
+            text = stringResource(message),
             color = MaterialTheme.colorScheme.onBackground
         )
     }

@@ -28,6 +28,12 @@ sealed class Prayer {
     ) : Prayer()
 }
 
+/** One litany-style verse (a Gozo today; any future call-and-response item shares this shape). */
+data class Gozo(
+    val id: Int,
+    val texto: String
+)
+
 sealed interface MainPrayer {
     val titleRes: Int
     val contentRes: Int

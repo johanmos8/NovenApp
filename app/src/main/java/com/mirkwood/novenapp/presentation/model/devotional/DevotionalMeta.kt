@@ -12,7 +12,8 @@ data class DevotionalMeta(
     @StringRes val titleResId: Int,
     val contentFileEs: String,
     val contentFileEn: String,
-    val images: DevotionalImages,
+    /** Image key (matched against a content block's `imageKey`) to drawable resource id. */
+    val images: Map<String, Int>,
     val schedule: DevotionalSchedule,
     val totalDays: Int
 )

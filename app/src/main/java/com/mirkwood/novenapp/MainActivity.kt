@@ -56,19 +56,35 @@ import com.mirkwood.novenapp.presentation.navigation.NavigationScreen
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
 import org.koin.androidx.compose.koinViewModel
 
+/** A specific day of a specific devotional, requested from outside the app (a notification tap or the widget). */
+data class PendingTarget(val devotionalId: String, val day: Int)
+
 class MainActivity : ComponentActivity() {
 
-    private var pendingTargetDay by mutableStateOf<Int?>(null)
+    private var pendingTarget by mutableStateOf<PendingTarget?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        pendingTargetDay = intent.extractTargetDay()
+        // Only a *fresh* start (no saved state) represents a genuine notification/widget
+        // tap to act on. Without this guard, rotating the screen (or any other
+        // recreation with saved state) re-read the same intent's extras - which are
+        // never cleared just by consuming them in Compose state - and navigated to the
+        // same day a second time, doubling it on the back stack. See the P0-4 finding
+        // in specs/code-audit-v3. A genuinely new tap while already running still comes
+        // through onNewIntent below, unconditionally, as it should.
+        if (savedInstanceState == null) {
+            pendingTarget = intent.extractPendingTarget()
+        }
         setContent {
             MyApp(
-                pendingTargetDay = pendingTargetDay,
-                onPendingTargetDayConsumed = { pendingTargetDay = null }
+                pendingTarget = pendingTarget,
+                onPendingTargetConsumed = {
+                    intent.removeExtra(EXTRA_TARGET_DAY)
+                    intent.removeExtra(EXTRA_TARGET_DEVOTIONAL_ID)
+                    pendingTarget = null
+                }
             )
         }
     }
@@ -76,16 +92,18 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        pendingTargetDay = intent.extractTargetDay()
+        pendingTarget = intent.extractPendingTarget()
     }
 
-    private fun Intent.extractTargetDay(): Int? {
+    private fun Intent.extractPendingTarget(): PendingTarget? {
         val day = getIntExtra(EXTRA_TARGET_DAY, -1)
-        return if (day > 0) day else null
+        val devotionalId = getStringExtra(EXTRA_TARGET_DEVOTIONAL_ID)
+        return if (day > 0 && devotionalId != null) PendingTarget(devotionalId, day) else null
     }
 
     companion object {
         const val EXTRA_TARGET_DAY = "extra_target_day"
+        const val EXTRA_TARGET_DEVOTIONAL_ID = "extra_target_devotional_id"
     }
 }
 
@@ -102,6 +120,9 @@ private data class BottomNavDestination(
     @StringRes val labelRes: Int,
     val icon: @Composable () -> Unit
 )
+
+/** A screen title reported by the back-stack entry identified by [entryId]. */
+private data class ReportedTitle(val entryId: String, val title: String)
 
 private val bottomNavDestinations = listOf(
     BottomNavDestination(
@@ -124,8 +145,8 @@ private val bottomNavDestinations = listOf(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun MyApp(
-    pendingTargetDay: Int? = null,
-    onPendingTargetDayConsumed: () -> Unit = {}
+    pendingTarget: PendingTarget? = null,
+    onPendingTargetConsumed: () -> Unit = {}
 ) {
     val navController = rememberNavController()
     val currentNavBackStackEntry by navController.currentBackStackEntryAsState()
@@ -133,10 +154,15 @@ fun MyApp(
     val currentRoute =
         currentNavBackStackEntry?.destination?.route ?: NavigationScreen.HomeScreen.route
     val viewModel: MainViewModel = koinViewModel()
-    var currentSongTitle by remember { mutableStateOf("Villancicos") }
-    // Null until PrayerScreen reports the page it's on, so the static fallback label
-    // shows instead of a blank/flashing title on first entry to DayScreen.
-    var currentStageTitle by remember { mutableStateOf<String?>(null) }
+    // Each title is stored with the id of the back-stack entry that reported it, and only
+    // shown while that entry is current. Until the new entry reports its own, the static
+    // fallback label shows - never the previous day's page or the previous song
+    // (P1-6 in specs/code-audit-v3).
+    var songTitle by remember { mutableStateOf<ReportedTitle?>(null) }
+    var stageTitle by remember { mutableStateOf<ReportedTitle?>(null) }
+    val currentEntryId = currentNavBackStackEntry?.id
+    val currentSongTitle = songTitle?.takeIf { it.entryId == currentEntryId }?.title
+    val currentStageTitle = stageTitle?.takeIf { it.entryId == currentEntryId }?.title
 
     val isTopLevelRoute = bottomNavDestinations.any { it.route == currentRoute }
 
@@ -149,10 +175,10 @@ fun MyApp(
 
     // A notification or the home-screen widget was tapped with a specific day to
     // open - reuses the same route-building logic as the in-app day picker.
-    LaunchedEffect(pendingTargetDay) {
-        if (pendingTargetDay != null) {
-            viewModel.onAction(NovenaAction.GoToDay(pendingTargetDay), navController)
-            onPendingTargetDayConsumed()
+    LaunchedEffect(pendingTarget) {
+        if (pendingTarget != null) {
+            viewModel.onAction(NovenaAction.GoToDay(pendingTarget.devotionalId, pendingTarget.day), navController)
+            onPendingTargetConsumed()
         }
     }
 
@@ -185,7 +211,7 @@ fun MyApp(
                     title = {
                         Text(
                             if (currentRoute == NavigationScreen.LyricsViewScreen.route) {
-                                currentSongTitle
+                                currentSongTitle ?: stringResource(R.string.app_bar_section_lyrics)
                             } else {
                                 stringResource(R.string.text_about_us)
                             }
@@ -213,11 +239,11 @@ fun MyApp(
             AppNavHost(
                 navController = navController,
                 mainViewModel = viewModel,
-                onSongTitleUpdated = { newTitle ->
-                    currentSongTitle = newTitle
+                onSongTitleUpdated = { entryId, newTitle ->
+                    songTitle = ReportedTitle(entryId, newTitle)
                 },
-                onStageTitleUpdated = { newTitle ->
-                    currentStageTitle = newTitle
+                onStageTitleUpdated = { entryId, newTitle ->
+                    stageTitle = ReportedTitle(entryId, newTitle)
                 }
             )
         }

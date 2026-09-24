@@ -1,37 +1,45 @@
 package com.mirkwood.novenapp.presentation.screens.lyrics
 
 import android.content.Context
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.mirkwood.novenapp.presentation.model.Song
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class LyricsViewModel(
+private const val TAG = "LyricsViewModel"
 
-) : ViewModel() {
+/**
+ * Loads the carols once, off the main thread, when the ViewModel is created - rather
+ * than re-reading and re-parsing `songs.json` during composition, on every
+ * recomposition of the carols tab (P2-1 in specs/code-audit-v3).
+ */
+class LyricsViewModel(context: Context) : ViewModel() {
 
+    private val appContext = context.applicationContext
 
-    private val _songs = MutableLiveData<List<Song>>()
-    val songs: LiveData<List<Song>> get() = _songs
+    /** `null` until loaded. An unreadable asset loads as an empty list, never a crash. */
+    private val _songs = MutableStateFlow<List<Song>?>(null)
+    val songs: StateFlow<List<Song>?> = _songs.asStateFlow()
 
-    private val _selectedSong = MutableStateFlow<Song?>(null)
-    val selectedSong: StateFlow<Song?> = _selectedSong.asStateFlow()
-
-    fun loadSongsFromJson(context: Context, songID: Int? = null) {
-        val jsonString = context.assets.open("songs.json").bufferedReader().use { it.readText() }
-        _songs.value = Gson().fromJson(jsonString, object : TypeToken<List<Song>>() {}.type)
-
-        // Si hay una canción seleccionada, búscala después de cargar los datos
-        songID?.let { getSongById(it) }
+    init {
+        viewModelScope.launch {
+            _songs.value = withContext(Dispatchers.IO) { readSongs() }
+        }
     }
 
-
-    fun getSongById(id: Int) {
-        _selectedSong.value = _songs.value?.find { it.id == id }
+    private fun readSongs(): List<Song> = try {
+        val json = appContext.assets.open("songs.json").bufferedReader().use { it.readText() }
+        Gson().fromJson<List<Song>>(json, object : TypeToken<List<Song>>() {}.type).orEmpty()
+    } catch (ex: Exception) {
+        Log.e(TAG, "Failed to load songs.json", ex)
+        emptyList()
     }
 }

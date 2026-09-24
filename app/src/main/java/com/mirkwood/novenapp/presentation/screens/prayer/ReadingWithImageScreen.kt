@@ -110,7 +110,8 @@ internal fun ReadingWithImageScreen(
                                 fontSize = 18.sp * textScale,
                                 lineHeight = 28.sp * textScale, // Espaciado entre líneas
                                 fontWeight = FontWeight.Normal,
-                                textAlign = TextAlign.Justify // Texto justificado
+                                // See the matching change in ReadingScreen.kt (P4-9 in specs/code-audit-v3).
+                                textAlign = TextAlign.Start
                             ),
                             modifier = Modifier.fillMaxWidth(),
                             color = MaterialTheme.colorScheme.onBackground

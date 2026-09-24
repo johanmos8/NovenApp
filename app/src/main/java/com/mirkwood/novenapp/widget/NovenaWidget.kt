@@ -3,7 +3,6 @@ package com.mirkwood.novenapp.widget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -23,7 +22,10 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
+import androidx.glance.GlanceTheme
+import androidx.glance.material3.ColorProviders
+import com.mirkwood.novenapp.ui.theme.DarkColorScheme
+import com.mirkwood.novenapp.ui.theme.LightColorScheme
 import com.mirkwood.novenapp.MainActivity
 import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.data.devotional.DevotionalRepository
@@ -46,9 +48,15 @@ class NovenaWidget : GlanceAppWidget(), KoinComponent {
     private val repository: DevotionalRepository by inject()
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val devotional = repository.getCatalog().first()
+        val catalog = repository.getCatalog()
+        val devotional = Util.pickFeaturedDevotional(catalog) ?: catalog.first()
         provideContent {
-            Content(context, devotional)
+            // The app's own brand palette (light + dark), not hardcoded colors and not
+            // wallpaper-derived dynamic color - matching the app, which keeps dynamic
+            // color off on purpose (P1-11 in specs/code-audit-v3, owner's option (a)).
+            GlanceTheme(colors = ColorProviders(light = LightColorScheme, dark = DarkColorScheme)) {
+                Content(context, devotional)
+            }
         }
     }
 
@@ -65,13 +73,14 @@ class NovenaWidget : GlanceAppWidget(), KoinComponent {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             if (day != null) {
                 putExtra(MainActivity.EXTRA_TARGET_DAY, day)
+                putExtra(MainActivity.EXTRA_TARGET_DEVOTIONAL_ID, devotional.id)
             }
         }
 
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(Color(0xFFFAFAFA))
+                .background(GlanceTheme.colors.surface)
                 .padding(12.dp)
                 .clickable(actionStartActivity(launchIntent)),
             verticalAlignment = Alignment.Vertical.CenterVertically,
@@ -80,7 +89,7 @@ class NovenaWidget : GlanceAppWidget(), KoinComponent {
             Text(
                 text = context.getString(devotional.titleResId),
                 style = TextStyle(
-                    color = ColorProvider(Color(0xFF212121)),
+                    color = GlanceTheme.colors.onSurface,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
@@ -90,7 +99,8 @@ class NovenaWidget : GlanceAppWidget(), KoinComponent {
             Text(
                 text = widgetLabel(context, devotional.schedule, day, today),
                 style = TextStyle(
-                    color = ColorProvider(Color(0xFFD32F2F)),
+                    // Liturgical amber: the same accent the app's "in progress" pill uses.
+                    color = GlanceTheme.colors.secondary,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center
@@ -110,6 +120,6 @@ class NovenaWidget : GlanceAppWidget(), KoinComponent {
         }
         val nextStart = Util.resolveNextOccurrence(schedule, today)
         val daysUntil = nextStart?.let { ChronoUnit.DAYS.between(today, it) } ?: 0L
-        return context.getString(R.string.widget_countdown_label, daysUntil)
+        return context.resources.getQuantityString(R.plurals.widget_countdown_label, daysUntil.toInt(), daysUntil.toInt())
     }
 }

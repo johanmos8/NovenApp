@@ -1,5 +1,17 @@
 package com.mirkwood.novenapp.presentation.screens.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +30,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalButton
@@ -26,12 +40,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -79,8 +97,14 @@ private val JourneyCardGradient: Brush
  * prayer. Its pill label, body and call-to-action all follow [JourneyStatus] rather
  * than assuming the novena is currently running - see `docs/home-journey-redesign.md`.
  *
- * @param onContinue navigate to a specific day of the active devotional.
+ * @param onContinue navigate to a specific day of this devotional.
  * @param onPreview  navigate to day 1 in preview mode (used before the season opens).
+ * @param isNotifying shows a small badge when this devotional currently has notifications
+ *   on - see specs/devotional-catalog-selection §4.2/4.3. Toggled by a long-press on the
+ *   card, wired by the caller via [modifier] (e.g. `Modifier.combinedClickable(...)`).
+ * @param notificationsBlocked adds a crossed-out bell next to "Active" when the
+ *   devotional is on but the system won't actually show its notifications (permission
+ *   denied, or blocked in Settings) - owner's call over hiding or relabeling the badge.
  */
 @Composable
 internal fun JourneyCard(
@@ -89,6 +113,8 @@ internal fun JourneyCard(
     onContinue: (day: Int) -> Unit,
     onPreview: () -> Unit,
     modifier: Modifier = Modifier,
+    isNotifying: Boolean = false,
+    notificationsBlocked: Boolean = false,
 ) {
     ElevatedCard(modifier = modifier.fillMaxWidth()) {
         Column(
@@ -98,7 +124,18 @@ internal fun JourneyCard(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            JourneyPill(status)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                JourneyPill(status)
+                ActiveBadge(
+                    devotionalTitle = devotionalTitle,
+                    isActive = isNotifying,
+                    isBlocked = notificationsBlocked
+                )
+            }
 
             Text(
                 text = devotionalTitle,
@@ -168,6 +205,90 @@ private fun JourneyPill(status: JourneyStatus) {
             style = MaterialTheme.typography.labelMedium,
             color = labelColor,
         )
+    }
+}
+
+/**
+ * A pill-shaped chip - checkmark + "Activa" label - that bounces in with a springy
+ * scale/expand when notifications turn on for this devotional, and shrinks back out
+ * when they turn off, topped with a one-shot "pop" pulse right on activation. The
+ * long-press itself has no visible affordance beforehand (see
+ * specs/devotional-catalog-selection §4.2), so this animated confirmation plus the
+ * haptic/Toast feedback in [HomeScreen] are what make the toggle feel intentional
+ * rather than accidental.
+ */
+@Composable
+private fun ActiveBadge(devotionalTitle: String, isActive: Boolean, isBlocked: Boolean) {
+    val containerColor by animateColorAsState(
+        targetValue = if (isActive) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+        label = "activeBadgeContainer",
+    )
+    val contentColor by animateColorAsState(
+        targetValue = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer else Color.Transparent,
+        label = "activeBadgeContent",
+    )
+
+    // A little extra "pop" layered on top of the enter animation, right when this
+    // switches on - a spring overshoot past 1x and back reads as more alive than a
+    // plain fade/scale-in on its own.
+    val pulse = remember { Animatable(1f) }
+    LaunchedEffect(isActive) {
+        if (isActive) {
+            pulse.snapTo(0.85f)
+            pulse.animateTo(1f, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+        }
+    }
+
+    AnimatedVisibility(
+        visible = isActive,
+        enter = fadeIn(tween(150)) +
+            scaleIn(
+                initialScale = 0.4f,
+                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
+            ) +
+            expandHorizontally(animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)),
+        exit = fadeOut(tween(150)) + shrinkHorizontally() + scaleOut(targetScale = 0.4f),
+    ) {
+        Surface(
+            shape = RoundedCornerShape(50),
+            color = containerColor,
+            modifier = Modifier.graphicsLayer {
+                scaleX = pulse.value
+                scaleY = pulse.value
+            },
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = stringResource(
+                        R.string.content_description_notifying_badge,
+                        devotionalTitle
+                    ),
+                    tint = contentColor,
+                    modifier = Modifier.size(15.dp),
+                )
+                Text(
+                    text = stringResource(R.string.devotional_active_label),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = contentColor,
+                )
+                // "On, but the system won't show it" - the choice itself stays visible
+                // (it's still honored the moment notifications are allowed again), with
+                // the blocked bell saying why nothing is arriving.
+                if (isBlocked) {
+                    Icon(
+                        imageVector = Icons.Filled.NotificationsOff,
+                        contentDescription = stringResource(R.string.content_description_notifications_blocked),
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(15.dp),
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -252,7 +373,11 @@ private fun NotStartedBody(
 
     TonalPanel {
         Text(
-            text = stringResource(R.string.widget_countdown_label, status.daysUntilStart.toInt()),
+            text = pluralStringResource(
+                R.plurals.journey_countdown_label,
+                status.daysUntilStart.toInt(),
+                status.daysUntilStart.toInt()
+            ),
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface,
         )

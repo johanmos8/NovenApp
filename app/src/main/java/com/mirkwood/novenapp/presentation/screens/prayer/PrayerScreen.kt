@@ -1,5 +1,6 @@
 package com.mirkwood.novenapp.presentation.screens.prayer
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,8 +25,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
@@ -46,6 +46,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -73,6 +75,7 @@ internal fun PrayerScreen(
     prayers: List<Prayer>,
     dayNumber: Int,
     totalDays: Int,
+    deviceLanguage: String = "es",
     isPreview: Boolean = false,
     isDayCompleted: Boolean = false,
     onToggleDayCompleted: () -> Unit = {},
@@ -90,7 +93,8 @@ internal fun PrayerScreen(
 
     val scope = rememberCoroutineScope()
 
-    val narrator = rememberPrayerNarrator()
+    val context = LocalContext.current
+    val narrator = rememberPrayerNarrator(deviceLanguage)
     val gozosLabel = stringResource(R.string.gozos_title)
     val currentStage = prayers.getOrNull(pagerState.currentPage)
 
@@ -131,7 +135,10 @@ internal fun PrayerScreen(
                 if (narrator.isSpeaking) {
                     narrator.stop()
                 } else {
-                    narrator.speak(prayers[pagerState.currentPage].narrationText())
+                    val result = narrator.speak(prayers[pagerState.currentPage].narrationText())
+                    if (result == PrayerNarrator.SpeakResult.VoiceUnavailable) {
+                        Toast.makeText(context, R.string.prayer_voice_unavailable, Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         )
@@ -412,7 +419,9 @@ private fun PrayerToolbar(
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Icon(
-                    imageVector = if (isSpeaking) Icons.Filled.Stop else Icons.Filled.MusicNote,
+                    // A speaker, not a music note: narration is speech, and the note
+                    // read as the Gozos music toggle (Q5 in specs/code-audit-v3).
+                    imageVector = if (isSpeaking) Icons.Filled.Stop else Icons.AutoMirrored.Filled.VolumeUp,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp)
                 )
@@ -439,7 +448,11 @@ private fun ProgressPill(dayNumber: Int, totalDays: Int) {
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Icon(
-            imageVector = Icons.Filled.LocalFireDepartment,
+            // A candle, not a flame: fire reads as streak iconography, which the
+            // calendar-locked novena avoids (CLAUDE.md §2.6; Q5 in specs/code-audit-v3).
+            // Material Symbols "candle" (filled), imported as a drawable since
+            // material-icons-extended has no candle.
+            painter = painterResource(R.drawable.candle_24px),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.size(16.dp)

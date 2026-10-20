@@ -144,4 +144,8 @@
     <string name="btn_back">Atras</string>
     <string name="villancicos">Villancicos</string>
     <string name="menu">Menu</string>
+    <string name="notifications_sheet_title">Notificaciones</string>
+    <string name="notifications_sheet_times">Recordatorio %1$s · Cierre del día %2$s</string>
+    <string name="notifications_sheet_blocked">Las notificaciones de NovenApp están bloqueadas en este dispositivo.</string>
+    <string name="notifications_sheet_open_settings">Abrir Ajustes</string>
 </resources>

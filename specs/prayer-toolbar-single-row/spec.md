@@ -107,6 +107,11 @@ can't be confused with the Gozos music button.
 
 ## 7. Follow-ups
 
+- **Done 2026-10-19 (owner: "sí, cada villancico propio, al entrar se reinicia"):** the lyrics screen got the
+  same "Aa" menu in its app bar. `TextSizeMenu` and the scale bounds moved to
+  `presentation/components/TextSizeMenu.kt`, shared by both screens. Each song starts at 1x when opened, the
+  same as each day here, and keeps its size across rotation.
+
 - Persisting the text size between visits (currently `rememberSaveable` only). That
   would be a separate decision with its own persisted store.
 - If `palette-tonal-containers` is approved, re-check the pill's and the Listen

@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +44,7 @@ fun NovenAppBar(
     sectionTitle: String,
     onBackClick: (() -> Unit)? = null,
     onNotificationsClick: () -> Unit = {},
+    notificationsBlocked: Boolean = false,
     onProfileClick: () -> Unit = {}
 ) {
     TopAppBar(
@@ -81,10 +83,18 @@ fun NovenAppBar(
         },
         actions = {
             if (onBackClick == null) {
+                // Opens the notifications sheet (specs/notifications-panel). Crossed out
+                // while the app can't post notifications; deliberately no unread badge.
                 IconButton(onClick = onNotificationsClick) {
                     Icon(
-                        imageVector = Icons.Filled.Notifications,
-                        contentDescription = stringResource(R.string.content_description_notifications)
+                        imageVector = if (notificationsBlocked) Icons.Filled.NotificationsOff else Icons.Filled.Notifications,
+                        contentDescription = stringResource(
+                            if (notificationsBlocked) {
+                                R.string.content_description_notifications_blocked
+                            } else {
+                                R.string.content_description_notifications
+                            }
+                        )
                     )
                 }
                 // TODO(owner): define what Profile does (Q7 in specs/code-audit-v3). Hidden,

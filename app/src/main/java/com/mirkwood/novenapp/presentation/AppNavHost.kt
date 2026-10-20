@@ -59,7 +59,10 @@ internal fun AppNavHost(
     // shows a title while that same entry is current - a new DayScreen or lyrics entry
     // never inherits the previous one's title (P1-6 in specs/code-audit-v3).
     onSongTitleUpdated: (entryId: String, title: String) -> Unit,
-    onStageTitleUpdated: (entryId: String, title: String) -> Unit = { _, _ -> }
+    onStageTitleUpdated: (entryId: String, title: String) -> Unit = { _, _ -> },
+    // The lyrics text size lives with the app bar's "Aa" menu; looked up by entry id so a
+    // newly opened song starts at 1x while the one being popped keeps its size.
+    lyricsTextScaleFor: (entryId: String) -> Float = { 1f }
 ) {
     // Lifecycle-aware: a plain collectAsState() keeps collecting (and, through it, the
     // per-devotional DataStore flows underneath) while the app is backgrounded - see
@@ -209,7 +212,11 @@ internal fun AppNavHost(
                     LaunchedEffect(backStackEntry.id, song.title) {
                         onSongTitleUpdated(backStackEntry.id, song.title)
                     }
-                    LyricsScreen(lyrics = song.lyrics, artist = song.artist)
+                    LyricsScreen(
+                        lyrics = song.lyrics,
+                        artist = song.artist,
+                        textScale = lyricsTextScaleFor(backStackEntry.id)
+                    )
                 } else {
                     MissingContentMessage(R.string.error_song_unavailable)
                 }

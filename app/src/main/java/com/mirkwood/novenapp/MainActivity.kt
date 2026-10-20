@@ -38,7 +38,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mirkwood.novenapp.presentation.components.MAX_TEXT_SCALE
+import com.mirkwood.novenapp.presentation.components.MIN_TEXT_SCALE
+import com.mirkwood.novenapp.presentation.components.NotificationsSheet
+import com.mirkwood.novenapp.presentation.components.TEXT_SCALE_STEP
+import com.mirkwood.novenapp.presentation.components.TextSizeMenu
+import com.mirkwood.novenapp.presentation.notifications.areNotificationsEnabled
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -164,6 +175,18 @@ fun MyApp(
     val currentSongTitle = songTitle?.takeIf { it.entryId == currentEntryId }?.title
     val currentStageTitle = stageTitle?.takeIf { it.entryId == currentEntryId }?.title
 
+    // Lyrics text size, owned by the song's back-stack entry it was set on: a newly opened
+    // song (new entry id) starts at 1x, the owner's choice, while a song being popped keeps
+    // its size through the exit animation. Saveable so rotation keeps it.
+    var lyricsScaleEntryId by rememberSaveable { mutableStateOf<String?>(null) }
+    var lyricsScaleValue by rememberSaveable { mutableFloatStateOf(1f) }
+    fun lyricsTextScaleFor(entryId: String?): Float =
+        if (entryId != null && entryId == lyricsScaleEntryId) lyricsScaleValue else 1f
+    fun setLyricsTextScale(entryId: String?, scale: Float) {
+        lyricsScaleEntryId = entryId
+        lyricsScaleValue = scale
+    }
+
     val isTopLevelRoute = bottomNavDestinations.any { it.route == currentRoute }
 
     // Phones keep the existing floating-pill NavigationBar exactly as designed; only
@@ -191,16 +214,46 @@ fun MyApp(
         }
     }
 
+    // The app bar bell's notifications sheet (specs/notifications-panel). Blocked state is
+    // re-checked on every resume - returning from system Settings is the usual way it
+    // changes - and after the permission dialog.
+    val context = LocalContext.current
+    val homeDevotionals by viewModel.homeDevotionals.collectAsStateWithLifecycle()
+    var showNotificationsSheet by rememberSaveable { mutableStateOf(false) }
+    var notificationsBlocked by remember { mutableStateOf(!areNotificationsEnabled(context)) }
+    LifecycleResumeEffect(Unit) {
+        notificationsBlocked = !areNotificationsEnabled(context)
+        onPauseOrDispose { }
+    }
+    if (showNotificationsSheet) {
+        NotificationsSheet(
+            devotionals = homeDevotionals,
+            notificationsBlocked = notificationsBlocked,
+            onToggle = { devotionalId, isCurrentlyNotifying ->
+                viewModel.toggleNotification(context, devotionalId, isCurrentlyNotifying)
+            },
+            onPermissionResult = { notificationsBlocked = !areNotificationsEnabled(context) },
+            onDismiss = { showNotificationsSheet = false }
+        )
+    }
+    val openNotificationsSheet = { showNotificationsSheet = true }
+
     val topBar: @Composable () -> Unit = {
         when (currentRoute) {
             NavigationScreen.HomeScreen.route -> NovenAppBar(
-                sectionTitle = stringResource(R.string.app_bar_section_home)
+                sectionTitle = stringResource(R.string.app_bar_section_home),
+                onNotificationsClick = openNotificationsSheet,
+                notificationsBlocked = notificationsBlocked
             )
             NavigationScreen.LyricsScreen.route -> NovenAppBar(
-                sectionTitle = stringResource(R.string.app_bar_section_lyrics)
+                sectionTitle = stringResource(R.string.app_bar_section_lyrics),
+                onNotificationsClick = openNotificationsSheet,
+                notificationsBlocked = notificationsBlocked
             )
             NavigationScreen.MoreScreen.route -> NovenAppBar(
-                sectionTitle = stringResource(R.string.app_bar_section_more)
+                sectionTitle = stringResource(R.string.app_bar_section_more),
+                onNotificationsClick = openNotificationsSheet,
+                notificationsBlocked = notificationsBlocked
             )
             NavigationScreen.DayScreen.route -> NovenAppBar(
                 sectionTitle = currentStageTitle ?: stringResource(R.string.app_bar_section_reading),
@@ -224,6 +277,21 @@ fun MyApp(
                                 contentDescription = stringResource(R.string.btn_back)
                             )
                         }
+                    },
+                    actions = {
+                        if (currentRoute == NavigationScreen.LyricsViewScreen.route) {
+                            val scale = lyricsTextScaleFor(currentEntryId)
+                            TextSizeMenu(
+                                canDecreaseText = scale > MIN_TEXT_SCALE,
+                                canIncreaseText = scale < MAX_TEXT_SCALE,
+                                onDecreaseText = {
+                                    setLyricsTextScale(currentEntryId, (scale - TEXT_SCALE_STEP).coerceAtLeast(MIN_TEXT_SCALE))
+                                },
+                                onIncreaseText = {
+                                    setLyricsTextScale(currentEntryId, (scale + TEXT_SCALE_STEP).coerceAtMost(MAX_TEXT_SCALE))
+                                }
+                            )
+                        }
                     }
                 )
             }
@@ -244,7 +312,8 @@ fun MyApp(
                 },
                 onStageTitleUpdated = { entryId, newTitle ->
                     stageTitle = ReportedTitle(entryId, newTitle)
-                }
+                },
+                lyricsTextScaleFor = ::lyricsTextScaleFor
             )
         }
     }

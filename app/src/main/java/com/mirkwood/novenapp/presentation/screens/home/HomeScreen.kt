@@ -1,9 +1,6 @@
 package com.mirkwood.novenapp.presentation.screens.home
 
 import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -33,8 +30,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import com.mirkwood.novenapp.reminder.NovenaNotifier
-import androidx.core.content.ContextCompat
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieAnimatable
@@ -44,6 +39,8 @@ import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.DevotionalHomeItem
 import com.mirkwood.novenapp.presentation.NovenaAction
 import com.mirkwood.novenapp.presentation.model.devotional.DevotionalCatalog
+import com.mirkwood.novenapp.presentation.notifications.areNotificationsEnabled
+import com.mirkwood.novenapp.presentation.notifications.needsNotificationPermission
 import com.mirkwood.novenapp.presentation.util.Util
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
 import kotlinx.coroutines.isActive
@@ -107,8 +104,10 @@ internal fun HomeScreen(
     // never got asked at all and every reminder was silently dropped (R1 in
     // specs/code-audit-v3). Ask once, on our own, as soon as Home shows anything that's
     // effectively on - and never again after that first time (the long-press path below
-    // still asks whenever the user explicitly turns something on).
-    val anyNotifying = devotionals.any { it.isNotifying }
+    // still asks whenever the user explicitly turns something on). Uses today's effective
+    // state, not the upcoming-cycle value the badge shows, so a default novena doesn't
+    // trigger this prompt out of season (specs/notifications-panel).
+    val anyNotifying = devotionals.any { it.isNotifyingNow }
     LaunchedEffect(anyNotifying) {
         if (anyNotifying && needsNotificationPermission(context) && !hasAutoPromptedPermission()) {
             onAutoPromptedPermission()
@@ -218,20 +217,6 @@ internal fun CelebrationAnimation() {
     }
 }
 
-
-/**
- * Whether the POST_NOTIFICATIONS runtime permission still has to be granted before
- * [com.mirkwood.novenapp.reminder.NovenaNotifier] can post anything. Always false below
- * Android 13, where that permission doesn't exist.
- */
-private fun needsNotificationPermission(context: Context): Boolean =
-    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
-        PackageManager.PERMISSION_GRANTED
-
-/** See [NovenaNotifier.canPostNotifications] - app-level *and* reminder-channel check. */
-private fun areNotificationsEnabled(context: Context): Boolean =
-    NovenaNotifier.canPostNotifications(context)
 
 /**
  * Loops for up to [maxLoopDuration] (a decorative background animation has no reason

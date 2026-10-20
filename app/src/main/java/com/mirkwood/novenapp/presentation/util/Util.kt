@@ -119,6 +119,29 @@ object Util {
     }
 
     /**
+     * Like [isNotifyingEffective], but answers "will reminders be on for this devotional's
+     * relevant cycle?" instead of "do they apply today?". The difference is only before a
+     * [DevotionalSchedule.FixedRange] window opens: a never-touched novena is off *today* but
+     * turns on by itself when the window opens, so this reports on. That's what the
+     * notifications sheet and the Home "Active" badge show (specs/notifications-panel Q1/Q2),
+     * so a switch never reads "off" in October and flips itself on in December. The
+     * workers keep using [isNotifyingEffective] to decide whether to fire.
+     */
+    fun isNotifyingForRelevantCycle(
+        schedule: DevotionalSchedule,
+        overrideEnabled: Boolean?,
+        overrideCycleKey: String?,
+        today: LocalDate = currentDate()
+    ): Boolean {
+        val appliesToRelevantCycle = overrideCycleKey != null && overrideCycleKey == resolveCycleKey(schedule, today)
+        val defaultForRelevantCycle = when (schedule) {
+            is DevotionalSchedule.FixedRange -> true
+            DevotionalSchedule.Evergreen -> false
+        }
+        return (overrideEnabled.takeIf { appliesToRelevantCycle }) ?: defaultForRelevantCycle
+    }
+
+    /**
      * The completed-days set to actually show/count: [state]'s stored days if they
      * belong to the currently relevant cycle ([resolveProgressCycleKey]), otherwise empty -
      * this is what makes a `FixedRange` novena's progress read as freshly reset once a

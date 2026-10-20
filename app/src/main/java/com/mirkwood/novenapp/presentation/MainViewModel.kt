@@ -23,12 +23,21 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
-/** One devotional's state as shown on the Home feed - see specs/devotional-catalog-selection. */
+/**
+ * One devotional's state as shown on the Home feed - see specs/devotional-catalog-selection.
+ *
+ * @param isNotifying whether reminders are on for the devotional's relevant cycle (the open
+ *   window, or the next one before it opens) - what the "Active" badge and the
+ *   notifications sheet show, and what the toggles start from (specs/notifications-panel Q1/Q2).
+ * @param isNotifyingNow whether reminders apply *today*; only the one-time automatic
+ *   permission prompt uses it, so that prompt still waits for the season.
+ */
 internal data class DevotionalHomeItem(
     val devotional: DevotionalMeta,
     val currentDay: Int?,
     val completedDays: Set<Int>,
-    val isNotifying: Boolean
+    val isNotifying: Boolean,
+    val isNotifyingNow: Boolean = isNotifying
 )
 
 /**
@@ -75,7 +84,8 @@ internal class MainViewModel(
             devotional = devotional,
             currentDay = Util.resolveCurrentDay(devotional.schedule),
             completedDays = Util.resolveEffectiveCompletedDays(devotional.schedule, progress.completedDays, progress.cycleKey),
-            isNotifying = Util.isNotifyingEffective(devotional.schedule, override?.enabled, override?.cycleKey)
+            isNotifying = Util.isNotifyingForRelevantCycle(devotional.schedule, override?.enabled, override?.cycleKey),
+            isNotifyingNow = Util.isNotifyingEffective(devotional.schedule, override?.enabled, override?.cycleKey)
         )
     }
 

@@ -56,10 +56,17 @@ internal fun parseLyrics(lyrics: String): List<LyricsStanza> {
  * them; the chorus is set in the tertiary accent and italics, the same meditative
  * accent as the Gozos numbers (specs/palette-tonal-containers §3.2). Theme typography
  * throughout, so it scales with the system font size.
+ *
+ * @param textScale multiplier on the stanza text, driven by the lyrics app bar's "Aa"
+ *   menu; it starts at 1 every time a song is opened (owner's choice).
  */
 @Composable
-fun LyricsScreen(lyrics: String, artist: String? = null) {
+fun LyricsScreen(lyrics: String, artist: String? = null, textScale: Float = 1f) {
     val stanzas = remember(lyrics) { parseLyrics(lyrics) }
+    val baseStyle = MaterialTheme.typography.bodyLarge
+    val stanzaStyle = remember(baseStyle, textScale) {
+        baseStyle.copy(fontSize = baseStyle.fontSize * textScale, lineHeight = baseStyle.lineHeight * textScale)
+    }
 
     Column(
         modifier = Modifier
@@ -92,7 +99,7 @@ fun LyricsScreen(lyrics: String, artist: String? = null) {
             Text(
                 text = stanza.text,
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
+                style = stanzaStyle,
                 fontStyle = if (stanza.isChorus) FontStyle.Italic else FontStyle.Normal,
                 color = if (stanza.isChorus) {
                     MaterialTheme.colorScheme.tertiary

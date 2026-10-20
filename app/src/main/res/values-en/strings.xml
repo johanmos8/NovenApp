@@ -137,4 +137,8 @@
     <string name="btn_back">Back</string>
     <string name="villancicos">Villancicos</string>
     <string name="menu">Menu</string>
+    <string name="notifications_sheet_title">Notifications</string>
+    <string name="notifications_sheet_times">Reminder %1$s · End of day %2$s</string>
+    <string name="notifications_sheet_blocked">NovenApp\'s notifications are blocked on this device.</string>
+    <string name="notifications_sheet_open_settings">Open Settings</string>
 </resources>

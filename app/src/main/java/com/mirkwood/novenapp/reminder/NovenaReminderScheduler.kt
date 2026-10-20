@@ -39,8 +39,9 @@ object NovenaReminderScheduler : KoinComponent {
     private const val REMINDER_WORK_PREFIX = "novena_daily_reminder_"
     private const val EVENING_CHECK_IN_WORK_PREFIX = "novena_evening_check_in_"
     private const val WIDGET_REFRESH_WORK_NAME = "novena_widget_midnight_refresh"
-    private const val REMINDER_HOUR = 9
-    private const val EVENING_CHECK_IN_HOUR = 20
+    // Internal so the notifications sheet can show them without duplicating the values.
+    internal const val REMINDER_HOUR = 9
+    internal const val EVENING_CHECK_IN_HOUR = 20
     private const val WIDGET_REFRESH_HOUR = 0
     internal const val INPUT_DEVOTIONAL_ID = "devotionalId"
 

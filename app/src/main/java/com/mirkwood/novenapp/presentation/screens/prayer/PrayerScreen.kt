@@ -27,8 +27,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -57,17 +55,16 @@ import androidx.compose.ui.unit.dp
 import com.mirkwood.compose_preview.PreviewAllPhones
 import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.components.GozosScreen
+import com.mirkwood.novenapp.presentation.components.MAX_TEXT_SCALE
+import com.mirkwood.novenapp.presentation.components.MIN_TEXT_SCALE
+import com.mirkwood.novenapp.presentation.components.TEXT_SCALE_STEP
+import com.mirkwood.novenapp.presentation.components.TextSizeMenu
 import com.mirkwood.novenapp.presentation.model.MainModule
 import com.mirkwood.novenapp.presentation.model.Prayer
 import com.mirkwood.novenapp.ui.theme.CandleAccent
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
-
-/** Bounds and step for the in-screen reading-text size control (A- / A+). */
-private const val MIN_TEXT_SCALE = 0.85f
-private const val MAX_TEXT_SCALE = 1.5f
-private const val TEXT_SCALE_STEP = 0.15f
 
 /** Average adult reading speed, used for the per-stage "~N min" estimate. */
 private const val WORDS_PER_MINUTE = 200.0
@@ -420,52 +417,6 @@ private fun PrayerToolbar(
     }
 }
 
-/**
- * "Aa" button opening A-/A+ as a menu. Picking an item doesn't close the menu, so the
- * user can step through several sizes while watching the text change behind it; an
- * outside tap or back closes it.
- */
-@Composable
-private fun TextSizeMenu(
-    canDecreaseText: Boolean,
-    canIncreaseText: Boolean,
-    onDecreaseText: () -> Unit,
-    onIncreaseText: () -> Unit
-) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    val decreaseLabel = stringResource(R.string.content_description_decrease_text_size)
-    val increaseLabel = stringResource(R.string.content_description_increase_text_size)
-    val menuLabel = stringResource(R.string.content_description_text_size)
-
-    Box {
-        IconButton(
-            onClick = { expanded = true },
-            modifier = Modifier.semantics { contentDescription = menuLabel }
-        ) {
-            Text(text = "Aa", style = MaterialTheme.typography.titleMedium)
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                text = { Text(text = "A−", style = MaterialTheme.typography.titleMedium) },
-                onClick = onDecreaseText,
-                enabled = canDecreaseText,
-                modifier = Modifier.semantics { contentDescription = decreaseLabel }
-            )
-            DropdownMenuItem(
-                text = { Text(text = "A+", style = MaterialTheme.typography.titleLarge) },
-                onClick = onIncreaseText,
-                enabled = canIncreaseText,
-                modifier = Modifier.semantics { contentDescription = increaseLabel }
-            )
-        }
-    }
-}
-
-/**
- * The day label between the day arrows. No container: it isn't tappable, and a filled
- * pill read as the screen's loudest button (specs/palette-tonal-containers Q2). Progress
- * amber for the text, the vivid [CandleAccent] only on the candle.
- */
 @Composable
 private fun ProgressPill(dayNumber: Int, totalDays: Int, modifier: Modifier = Modifier) {
     Row(

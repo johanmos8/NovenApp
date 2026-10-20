@@ -13,7 +13,6 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -67,27 +67,21 @@ import java.time.format.FormatStyle
 import java.util.Locale
 
 /**
- * A soft, pastel horizontal wash for the [JourneyCard] background: a very light tint of the
- * design-system Primary (#3F51B5) on the left easing into a very light tint of Secondary
- * (#D97706) on the right. The tints are near-white so the gradient stays low-contrast and
- * never competes with the card's content or typography.
- *
- * In dark theme the same two hues are used at a very low alpha over the card surface so the
- * wash stays just as subtle without washing out light-on-dark text.
+ * A soft, pastel horizontal wash for the [JourneyCard] background: the theme's primary
+ * container on the left easing into its secondary container on the right, at partial
+ * alpha over the card surface so it stays low-contrast and never competes with the card's
+ * content. Read from [MaterialTheme] (not hardcoded hexes, not the system dark setting) so
+ * it follows the app's actual theme (P4-7 in specs/code-audit-v3). The dark containers are
+ * deeper tones, hence the lower alpha there.
  */
 private val JourneyCardGradient: Brush
-    @Composable get() = if (isSystemInDarkTheme()) {
-        Brush.horizontalGradient(
+    @Composable get() {
+        val colors = MaterialTheme.colorScheme
+        val alpha = if (colors.surface.luminance() < 0.5f) 0.35f else 0.6f
+        return Brush.horizontalGradient(
             listOf(
-                Color(0xFF3F51B5).copy(alpha = 0.16f), // Primary
-                Color(0xFFD97706).copy(alpha = 0.16f), // Secondary
-            ),
-        )
-    } else {
-        Brush.horizontalGradient(
-            listOf(
-                Color(0xFFE8EAF6), // ~12% #3F51B5 over white
-                Color(0xFFFAEFE1), // ~12% #D97706 over white
+                colors.primaryContainer.copy(alpha = alpha),
+                colors.secondaryContainer.copy(alpha = alpha),
             ),
         )
     }
@@ -177,8 +171,8 @@ private fun JourneyPill(status: JourneyStatus) {
     }
     val accentColor = when (status) {
         is JourneyStatus.InProgress -> MaterialTheme.colorScheme.secondary
-        is JourneyStatus.NotStarted -> MaterialTheme.colorScheme.onSurfaceVariant
-        is JourneyStatus.Completed -> MaterialTheme.colorScheme.primary
+        is JourneyStatus.NotStarted -> MaterialTheme.colorScheme.tertiary
+        is JourneyStatus.Completed -> MaterialTheme.colorScheme.secondary
     }
     val labelColor = if (status is JourneyStatus.InProgress) {
         accentColor
@@ -220,11 +214,13 @@ private fun JourneyPill(status: JourneyStatus) {
 @Composable
 private fun ActiveBadge(devotionalTitle: String, isActive: Boolean, isBlocked: Boolean) {
     val containerColor by animateColorAsState(
-        targetValue = if (isActive) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+        // Tertiary, not primary: "Active" is informational and mustn't weigh as much as
+        // the card's main action (specs/palette-tonal-containers §3.3).
+        targetValue = if (isActive) MaterialTheme.colorScheme.tertiaryContainer else Color.Transparent,
         label = "activeBadgeContainer",
     )
     val contentColor by animateColorAsState(
-        targetValue = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer else Color.Transparent,
+        targetValue = if (isActive) MaterialTheme.colorScheme.onTertiaryContainer else Color.Transparent,
         label = "activeBadgeContent",
     )
 
@@ -334,13 +330,13 @@ private fun InProgressBody(
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.size(16.dp),
             )
             Text(
                 text = stringResource(R.string.journey_keeping_up),
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.secondary,
             )
         }
     }
@@ -388,7 +384,9 @@ private fun NotStartedBody(
         )
     }
 
-    FilledTonalButton(
+    // Filled primary: the only action on a not-started card, so it gets the same weight
+    // as "Continue" (specs/palette-tonal-containers Q3).
+    Button(
         onClick = onPreview,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(percent = 50),

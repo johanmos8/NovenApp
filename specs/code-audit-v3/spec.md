@@ -349,6 +349,13 @@ Decisions that belong to the owner. Each one notes which finding it unblocks.
   - **Decision (2026-09-22):** "animación + acceso" — the celebration animation plays
     alongside full access to the devotionals feed, not instead of it. Implemented: see
     P1-2 above.
+  - **Revised (2026-10-19, after on-device test 2.3):** the cards covered the
+    celebration sign. "Ocultar solo las que celebran": on its celebration day, a
+    devotional's own card is hidden from Home; any other devotional keeps its card. With
+    today's single novena, Dec 25 shows only the animation (no access to the prayers
+    that day, accepted). Same session, "dismiss por sesión": the day screen's preview
+    banner gets a close button; once closed it stays hidden until the next app launch
+    (in-memory flag on `MainViewModel`, nothing persisted).
 - **Q7 (P1-3, P1-7) — Top bar and card actions.** Should the Notifications and Profile
   buttons be removed, or given a purpose (e.g. Notifications → reminder settings)?
   Should tapping the journey card open the current day, same as its button?

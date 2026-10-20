@@ -65,6 +65,7 @@ internal fun AppNavHost(
     // per-devotional DataStore flows underneath) while the app is backgrounded - see
     // the P2-5 finding in specs/code-audit-v3.
     val homeDevotionals by mainViewModel.homeDevotionals.collectAsStateWithLifecycle()
+    val previewBannerDismissed by mainViewModel.previewBannerDismissed.collectAsStateWithLifecycle()
     val lyricsViewModel: LyricsViewModel = koinViewModel()
     NavHost(
         navController = navController,
@@ -156,7 +157,8 @@ internal fun AppNavHost(
                         deviceLanguage = language,
                         dayNumber = currentDay,
                         totalDays = devotionalMeta.totalDays,
-                        isPreview = isPreview,
+                        isPreview = isPreview && !previewBannerDismissed,
+                        onDismissPreview = mainViewModel::dismissPreviewBanner,
                         isDayCompleted = currentDay in completedDays,
                         onToggleDayCompleted = {
                             mainViewModel.toggleDayCompleted(devotionalId, currentDay, currentDay in completedDays)
@@ -207,7 +209,7 @@ internal fun AppNavHost(
                     LaunchedEffect(backStackEntry.id, song.title) {
                         onSongTitleUpdated(backStackEntry.id, song.title)
                     }
-                    LyricsScreen(lyrics = song.lyrics)
+                    LyricsScreen(lyrics = song.lyrics, artist = song.artist)
                 } else {
                     MissingContentMessage(R.string.error_song_unavailable)
                 }

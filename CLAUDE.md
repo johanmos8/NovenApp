@@ -80,6 +80,40 @@ the cost of a short spec is much lower than the cost of unwinding an unwanted ch
 
 ---
 
+## 1.4 Verification rigor: compiling is not verification
+
+A change compiling — even running without crashing on the one scenario just tested —
+does not mean it's correct, especially for date/time resolution, WorkManager
+scheduling, or any state that persists across a calendar boundary (a devotional's
+season opening/closing, a notification override, a permission grant). This project is
+seasonal: a scheduling bug shipped in September isn't discoverable again until next
+December, by which point it's too late to fix for that season. So, before presenting a
+change as done:
+
+1. **For any change to date/schedule/notification logic**, explicitly trace the
+   boundary scenarios by hand — not just the happy-path/"today, mid-season" case. At
+   minimum: the moment just before a window opens, the moment just after it closes,
+   and an action taken after today's scheduled time has already passed. `specs/`'s own
+   code-audit "Scenario:" write-ups are the model to follow.
+2. **After a diff touching many files, or introducing a new cross-cutting concern**
+   (a new persisted store, a new background worker/scheduler, a new coroutine scope),
+   do one dedicated adversarial re-read of the whole diff hunting for bugs, separate
+   from and in addition to the compile check. Catching one bug during that pass is a
+   reason to keep looking, not a signal the pass was already thorough enough.
+3. **When reusing an existing function or pattern at a new call site**, re-check
+   whether its original assumptions still hold there — an "already-passed → fire now"
+   fallback built for a self-rescheduling background worker doesn't necessarily belong
+   at a user-initiated toggle's call site.
+4. **Code inside a fire-and-forget coroutine or background scope** (`Application.onCreate`,
+   a `WorkManager` `doWork`, etc.) needs explicit failure handling as part of "done,"
+   not deferred — an uncaught exception there can crash the app on every launch, not
+   just fail the one operation.
+5. None of this replaces the owner's own on-device testing — it's what should happen
+   *before* handing something over for that, so the owner is verifying product/UX fit,
+   not catching bugs that tracing the logic by hand would have caught.
+
+---
+
 ## 2. Architecture principles
 
 These are standing constraints on the codebase, distilled from `V3_REDESIGN_ANALYSIS.md`

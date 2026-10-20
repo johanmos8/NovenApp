@@ -6,26 +6,31 @@ import androidx.compose.ui.graphics.lerp
 /*
  * "Novena Contemplative MD3" - a warm porcelain/candlelight palette: deep indigo for
  * structure, liturgical amber for active/completed states, twilight violet for
- * meditative accents. Every light-theme value below is a literal from that spec, not
- * derived - only the dark theme (which the spec doesn't define) is computed from it.
+ * meditative accents. The light non-container values are literals from that spec.
+ *
+ * The container/on-container pairs are not: the spec's containers were saturated
+ * mid-tones (#3F51B5, #FE932C, #73498B), which made every tonal component (chips, pills,
+ * badges, tonal buttons, the nav indicator) compete with the primary action. They're
+ * regenerated as standard M3 tonal-palette tones from the same seeds with Material Color
+ * Utilities - light tone 90/10, dark tone 30/90 (specs/palette-tonal-containers).
  */
 
-// region Light - literal values from the design spec
+// region Light - spec literals, plus generated containers
 val LightPrimary = Color(0xFF24389C)
 val LightOnPrimary = Color(0xFFFFFFFF)
-val LightPrimaryContainer = Color(0xFF3F51B5)
-val LightOnPrimaryContainer = Color(0xFFCACFFF)
+val LightPrimaryContainer = Color(0xFFDEE0FF)
+val LightOnPrimaryContainer = Color(0xFF00105B)
 val LightInversePrimary = Color(0xFFBAC3FF)
 
 val LightSecondary = Color(0xFF904D00)
 val LightOnSecondary = Color(0xFFFFFFFF)
-val LightSecondaryContainer = Color(0xFFFE932C)
-val LightOnSecondaryContainer = Color(0xFF663500)
+val LightSecondaryContainer = Color(0xFFFFDCC3)
+val LightOnSecondaryContainer = Color(0xFF2F1500)
 
 val LightTertiary = Color(0xFF593172)
 val LightOnTertiary = Color(0xFFFFFFFF)
-val LightTertiaryContainer = Color(0xFF73498B)
-val LightOnTertiaryContainer = Color(0xFFECC4FF)
+val LightTertiaryContainer = Color(0xFFF4D9FF)
+val LightOnTertiaryContainer = Color(0xFF2E0348)
 
 val LightError = Color(0xFFBA1A1A)
 val LightOnError = Color(0xFFFFFFFF)
@@ -51,28 +56,40 @@ val LightInverseOnSurface = Color(0xFFF1F0F8)
 val LightOutline = Color(0xFF757684)
 val LightOutlineVariant = Color(0xFFC5C5D4)
 
-// The spec's "fixed" roles (same tone in both themes) aren't settable through this
-// Material3 version's ColorScheme, but their hexes are still useful raw material below
-// for deriving readable dark on-container text without inventing new tones.
-private val SecondaryFixed = Color(0xFFFFDCC3)
+// The original spec's saturated containers. No longer containers, but still the source
+// the dark theme's primary/secondary/tertiary roles were derived from, so dark mode's
+// non-container roles stay exactly as they were.
+private val SpecPrimaryAccent = Color(0xFF3F51B5)
+private val SpecSecondaryAccent = Color(0xFFFE932C)
+private val SpecTertiaryAccent = Color(0xFF73498B)
+
+/**
+ * The palette's vivid candlelight orange, kept only as a deliberate accent (the candle
+ * on the day screen's progress pill) - never as a surface or text color. Same value in
+ * both themes.
+ */
+val CandleAccent = SpecSecondaryAccent
 // endregion
 
-// region Dark - derived from the light spec (not part of the original design)
-val DarkPrimary = lerp(LightPrimaryContainer, Color.White, 0.35f)
-val DarkOnPrimary = lerp(LightPrimaryContainer, Color.Black, 0.55f)
-val DarkPrimaryContainer = lerp(LightPrimary, Color.Black, 0.35f)
-val DarkOnPrimaryContainer = LightOnPrimaryContainer
-val DarkInversePrimary = LightPrimaryContainer
+// region Dark - derived from the light spec (not part of the original design), except
+// the container pairs, which are generated tones like the light ones
+val DarkPrimary = lerp(SpecPrimaryAccent, Color.White, 0.35f)
+val DarkOnPrimary = lerp(SpecPrimaryAccent, Color.Black, 0.55f)
+val DarkPrimaryContainer = Color(0xFF283CA0)
+val DarkOnPrimaryContainer = Color(0xFFDEE0FF)
+val DarkInversePrimary = SpecPrimaryAccent
 
-val DarkSecondary = lerp(LightSecondaryContainer, Color.White, 0.25f)
-val DarkOnSecondary = lerp(LightSecondaryContainer, Color.Black, 0.65f)
-val DarkSecondaryContainer = lerp(LightSecondary, Color.Black, 0.25f)
-val DarkOnSecondaryContainer = SecondaryFixed
+val DarkSecondary = lerp(SpecSecondaryAccent, Color.White, 0.25f)
+val DarkOnSecondary = lerp(SpecSecondaryAccent, Color.Black, 0.65f)
+val DarkSecondaryContainer = Color(0xFF6E3900)
+val DarkOnSecondaryContainer = Color(0xFFFFDCC3)
 
-val DarkTertiary = lerp(LightTertiaryContainer, Color.White, 0.30f)
-val DarkOnTertiary = lerp(LightTertiaryContainer, Color.Black, 0.55f)
-val DarkTertiaryContainer = lerp(LightTertiary, Color.Black, 0.30f)
-val DarkOnTertiaryContainer = LightOnTertiaryContainer
+// Generated tone 80, not lerp-derived: tertiary is used as text (Gozos numbers), and the
+// old derived value only reached 3.8:1 on the dark surface; this is 7.8:1.
+val DarkTertiary = Color(0xFFE5B5FF)
+val DarkOnTertiary = lerp(SpecTertiaryAccent, Color.Black, 0.55f)
+val DarkTertiaryContainer = Color(0xFF5D3576)
+val DarkOnTertiaryContainer = Color(0xFFF4D9FF)
 
 // Material's own baseline dark error tones - the spec's light error values already are
 // Material's baseline light error tones, so the dark side follows the same baseline.

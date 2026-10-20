@@ -116,11 +116,14 @@ internal fun HomeScreen(
         }
     }
 
+    // A devotional on its own celebration day steps aside so the celebration sign isn't
+    // covered by its card; any other devotional keeps its card (owner's revision of Q6
+    // in specs/code-audit-v3).
+    val visibleDevotionals = devotionals.filterNot { Util.isCelebrationDay(it.devotional.schedule) }
+
     Box(modifier = Modifier.fillMaxSize()) {
-        // The celebration no longer replaces the whole screen - it plays behind the
-        // devotionals feed, same slot the snow background otherwise occupies, so
-        // Dec 25 doesn't cut off access to any devotional's prayers (P1-2 in
-        // specs/code-audit-v3).
+        // The celebration plays behind the devotionals feed, same slot the snow
+        // background otherwise occupies (P1-2 in specs/code-audit-v3).
         if (isChristmas) {
             CelebrationAnimation()
         } else {
@@ -134,7 +137,7 @@ internal fun HomeScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            devotionals.forEach { item ->
+            visibleDevotionals.forEach { item ->
                 val title = stringResource(item.devotional.titleResId)
                 val journeyStatus = remember(item.devotional, item.currentDay, item.completedDays) {
                     resolveJourneyStatus(item.devotional, item.currentDay, item.completedDays)

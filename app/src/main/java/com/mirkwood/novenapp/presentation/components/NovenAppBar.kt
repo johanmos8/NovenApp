@@ -70,7 +70,7 @@ fun NovenAppBar(
                     Text(
                         text = stringResource(R.string.app_name),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.secondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = sectionTitle,

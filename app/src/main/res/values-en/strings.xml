@@ -71,6 +71,7 @@
     <string name="error_devotional_content_unavailable">This content isn\'t available right now.</string>
     <string name="error_song_unavailable">This song isn\'t available.</string>
     <string name="day_preview_banner">You\'re getting an early look - this day hasn\'t started yet</string>
+    <string name="content_description_dismiss_preview_banner">Dismiss early-look notice</string>
     <string name="content_description_previous_day">Previous day</string>
     <string name="content_description_next_day">Next day</string>
     <string name="home_explore_all_days">Explore any day of the novena</string>
@@ -104,6 +105,7 @@
     <string name="prayer_progress_pill">%1$d of %2$d days</string>
     <string name="content_description_decrease_text_size">Decrease text size</string>
     <string name="content_description_increase_text_size">Increase text size</string>
+    <string name="content_description_text_size">Text size</string>
     <string name="prayer_listen">Listen</string>
     <string name="prayer_voice_unavailable">No voice is available to read aloud on this device. Check your text-to-speech settings.</string>
     <string name="prayer_stop">Stop</string>

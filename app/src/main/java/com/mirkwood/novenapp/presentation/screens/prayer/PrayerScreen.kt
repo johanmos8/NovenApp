@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,10 +23,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -35,7 +37,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -58,6 +59,7 @@ import com.mirkwood.novenapp.R
 import com.mirkwood.novenapp.presentation.components.GozosScreen
 import com.mirkwood.novenapp.presentation.model.MainModule
 import com.mirkwood.novenapp.presentation.model.Prayer
+import com.mirkwood.novenapp.ui.theme.CandleAccent
 import com.mirkwood.novenapp.ui.theme.NovenAppTheme
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
@@ -77,6 +79,7 @@ internal fun PrayerScreen(
     totalDays: Int,
     deviceLanguage: String = "es",
     isPreview: Boolean = false,
+    onDismissPreview: () -> Unit = {},
     isDayCompleted: Boolean = false,
     onToggleDayCompleted: () -> Unit = {},
     onPreviousDay: (() -> Unit)? = null,
@@ -114,7 +117,7 @@ internal fun PrayerScreen(
     ) {
 
         if (isPreview) {
-            PreviewBanner()
+            PreviewBanner(onDismiss = onDismissPreview)
         }
 
         PrayerToolbar(
@@ -343,12 +346,12 @@ private fun StageSegments(
 
 /**
  * The control strip directly below the app bar, present on every page of the pager:
- * a day navigator (prev/next arrows around the progress pill) on its own row, and the
- * reading aids (text size, listen) on the row below. Split into two rows - rather than
- * one crowded `SpaceBetween` row - because the day navigator's extra arrows made the
- * single-row version overflow on narrow phones, wrapping the listen button's text.
- * Kept out of the pager itself so it does not scroll away with the prayer text and
- * stays put while swiping between pages.
+ * one row with the day navigator (prev/next arrows around the progress pill) at the
+ * start and the reading aids (text size, listen) at the end. It used to be two rows,
+ * because a single row with inline A-/A+ and a labelled "Listen" button overflowed
+ * narrow phones. Text size behind an "Aa" menu and an icon-only Listen button make it
+ * fit in ~300dp (specs/prayer-toolbar-single-row). Kept out of the pager itself so it
+ * does not scroll away with the prayer text and stays put while swiping between pages.
  */
 @Composable
 private fun PrayerToolbar(
@@ -364,15 +367,17 @@ private fun PrayerToolbar(
     onToggleListen: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        // fill = false: the navigator only shrinks (ellipsizing the pill) when the row
+        // genuinely runs out of width, e.g. at extreme system font scales.
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.weight(1f, fill = false),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onPreviousDay ?: {}, enabled = onPreviousDay != null) {
@@ -381,7 +386,11 @@ private fun PrayerToolbar(
                     contentDescription = stringResource(R.string.content_description_previous_day)
                 )
             }
-            ProgressPill(dayNumber = dayNumber, totalDays = totalDays)
+            ProgressPill(
+                dayNumber = dayNumber,
+                totalDays = totalDays,
+                modifier = Modifier.weight(1f, fill = false)
+            )
             IconButton(onClick = onNextDay ?: {}, enabled = onNextDay != null) {
                 Icon(
                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -390,60 +399,77 @@ private fun PrayerToolbar(
             }
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.End),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val decreaseLabel = stringResource(R.string.content_description_decrease_text_size)
-            val increaseLabel = stringResource(R.string.content_description_increase_text_size)
-            TextButton(
-                onClick = onDecreaseText,
-                enabled = canDecreaseText,
-                contentPadding = PaddingValues(horizontal = 8.dp),
-                modifier = Modifier.semantics { contentDescription = decreaseLabel }
-            ) {
-                Text(text = "A−", style = MaterialTheme.typography.titleMedium)
-            }
-            TextButton(
-                onClick = onIncreaseText,
-                enabled = canIncreaseText,
-                contentPadding = PaddingValues(horizontal = 8.dp),
-                modifier = Modifier.semantics { contentDescription = increaseLabel }
-            ) {
-                Text(text = "A+", style = MaterialTheme.typography.titleLarge)
-            }
-            Spacer(Modifier.width(4.dp))
-            FilledTonalButton(
-                onClick = onToggleListen,
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-            ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            TextSizeMenu(
+                canDecreaseText = canDecreaseText,
+                canIncreaseText = canIncreaseText,
+                onDecreaseText = onDecreaseText,
+                onIncreaseText = onIncreaseText
+            )
+            FilledTonalIconButton(onClick = onToggleListen) {
                 Icon(
                     // A speaker, not a music note: narration is speech, and the note
                     // read as the Gozos music toggle (Q5 in specs/code-audit-v3).
                     imageVector = if (isSpeaking) Icons.Filled.Stop else Icons.AutoMirrored.Filled.VolumeUp,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = stringResource(
+                    contentDescription = stringResource(
                         if (isSpeaking) R.string.prayer_stop else R.string.prayer_listen
-                    ),
-                    style = MaterialTheme.typography.labelLarge
+                    )
                 )
             }
         }
     }
 }
 
+/**
+ * "Aa" button opening A-/A+ as a menu. Picking an item doesn't close the menu, so the
+ * user can step through several sizes while watching the text change behind it; an
+ * outside tap or back closes it.
+ */
 @Composable
-private fun ProgressPill(dayNumber: Int, totalDays: Int) {
+private fun TextSizeMenu(
+    canDecreaseText: Boolean,
+    canIncreaseText: Boolean,
+    onDecreaseText: () -> Unit,
+    onIncreaseText: () -> Unit
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val decreaseLabel = stringResource(R.string.content_description_decrease_text_size)
+    val increaseLabel = stringResource(R.string.content_description_increase_text_size)
+    val menuLabel = stringResource(R.string.content_description_text_size)
+
+    Box {
+        IconButton(
+            onClick = { expanded = true },
+            modifier = Modifier.semantics { contentDescription = menuLabel }
+        ) {
+            Text(text = "Aa", style = MaterialTheme.typography.titleMedium)
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(text = "A−", style = MaterialTheme.typography.titleMedium) },
+                onClick = onDecreaseText,
+                enabled = canDecreaseText,
+                modifier = Modifier.semantics { contentDescription = decreaseLabel }
+            )
+            DropdownMenuItem(
+                text = { Text(text = "A+", style = MaterialTheme.typography.titleLarge) },
+                onClick = onIncreaseText,
+                enabled = canIncreaseText,
+                modifier = Modifier.semantics { contentDescription = increaseLabel }
+            )
+        }
+    }
+}
+
+/**
+ * The day label between the day arrows. No container: it isn't tappable, and a filled
+ * pill read as the screen's loudest button (specs/palette-tonal-containers Q2). Progress
+ * amber for the text, the vivid [CandleAccent] only on the candle.
+ */
+@Composable
+private fun ProgressPill(dayNumber: Int, totalDays: Int, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(MaterialTheme.colorScheme.secondaryContainer)
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+        modifier = modifier.padding(horizontal = 4.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
@@ -454,13 +480,15 @@ private fun ProgressPill(dayNumber: Int, totalDays: Int) {
             // material-icons-extended has no candle.
             painter = painterResource(R.drawable.candle_24px),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            tint = CandleAccent,
             modifier = Modifier.size(16.dp)
         )
         Text(
             text = stringResource(R.string.prayer_progress_pill, dayNumber, totalDays),
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSecondaryContainer
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.secondary
         )
     }
 }
@@ -472,13 +500,12 @@ private fun ProgressPill(dayNumber: Int, totalDays: Int) {
  * with no indication it's early.
  */
 @Composable
-private fun PreviewBanner() {
+private fun PreviewBanner(onDismiss: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.tertiaryContainer)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.Center,
+            .padding(start = 16.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -491,8 +518,17 @@ private fun PreviewBanner() {
         Text(
             text = stringResource(R.string.day_preview_banner),
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onTertiaryContainer
+            color = MaterialTheme.colorScheme.onTertiaryContainer,
+            modifier = Modifier.weight(1f)
         )
+        IconButton(onClick = onDismiss) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(R.string.content_description_dismiss_preview_banner),
+                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                modifier = Modifier.size(18.dp)
+            )
+        }
     }
 }
 

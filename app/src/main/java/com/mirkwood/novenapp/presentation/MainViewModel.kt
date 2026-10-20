@@ -45,6 +45,18 @@ internal class MainViewModel(
     /** Bumped to force [homeDevotionals] to re-resolve "today" (a date rollover, or the debug forced-date switch). */
     private val refreshTrigger = MutableStateFlow(0)
 
+    /**
+     * The day screen's "early look" banner, once closed, stays closed for this session
+     * (across days and rotation) and comes back on the next launch. In memory only, by
+     * the owner's choice - no persisted store.
+     */
+    private val _previewBannerDismissed = MutableStateFlow(false)
+    val previewBannerDismissed: StateFlow<Boolean> = _previewBannerDismissed
+
+    fun dismissPreviewBanner() {
+        _previewBannerDismissed.value = true
+    }
+
     // Every catalog devotional shows a card - including a FixedRange one that hasn't
     // started yet (JourneyStatus.NotStarted's countdown), matching today's existing
     // year-round behavior for the one novena. "Relevant" only gates notifications

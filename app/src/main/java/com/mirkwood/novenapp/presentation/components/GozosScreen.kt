@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -398,7 +399,8 @@ private fun GozoRow(number: Int, gozo: Gozo, isRead: Boolean, onToggleRead: () -
             text = "$number.",
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Bold,
-            color = if (isRead) textColor else MaterialTheme.colorScheme.primary,
+            // Tertiary: a meditative accent, not an action (specs/palette-tonal-containers §3.3).
+            color = if (isRead) textColor else MaterialTheme.colorScheme.tertiary,
             modifier = Modifier.width(28.dp)
         )
         Text(
@@ -415,7 +417,16 @@ private fun GozoRow(number: Int, gozo: Gozo, isRead: Boolean, onToggleRead: () -
             number
         )
         if (isRead) {
-            FilledIconButton(onClick = onToggleRead, modifier = Modifier.size(36.dp)) {
+            // Progress amber, matching the day screen's "marked as prayed" chip, instead
+            // of FilledIconButton's default primary.
+            FilledIconButton(
+                onClick = onToggleRead,
+                modifier = Modifier.size(36.dp),
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
+                )
+            ) {
                 Icon(Icons.Default.Check, contentDescription = toggleDescription, modifier = Modifier.size(18.dp))
             }
         } else {

@@ -72,13 +72,14 @@ private fun SongItem(song: Song, onClick: () -> Unit) {
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    // Decorative, so tertiary rather than primary (specs/palette-tonal-containers §3.3).
+                    .background(MaterialTheme.colorScheme.tertiaryContainer),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     painter = painterResource(R.drawable.music_note_24px),
                     contentDescription = stringResource(R.string.text_music),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
                     modifier = Modifier.size(22.dp),
                 )
             }

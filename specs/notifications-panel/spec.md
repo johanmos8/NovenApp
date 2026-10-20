@@ -1,7 +1,7 @@
 # Notifications panel (the app bar bell)
 
-**Status:** In Progress — implemented, compiles; awaiting owner on-device review
-**Owner approval:** Approved by Johan Mosquera (chat, "apruebo con las recomendaciones, implementa"), 2026-10-19 — Q1 (a), Q2 yes, Q3 before December
+**Status:** Done
+**Owner approval:** Approved by Johan Mosquera (chat, "apruebo con las recomendaciones, implementa"), 2026-10-19 — Q1 (a), Q2 yes, Q3 before December; confirmed 2026-10-20 ("aprueba los specs anteriores")
 **Scope:** `presentation/components/NovenAppBar.kt` (bell action and icon state), `MainActivity.kt` (hosting the sheet), new `presentation/components/NotificationsSheet.kt`, `presentation/screens/home/HomeScreen.kt` (permission helpers moved out to be shared), `presentation/MainViewModel.kt` (state for the sheet), `reminder/NovenaReminderScheduler.kt` (expose the reminder hours read-only), `presentation/util/Util.kt` (only if Q1 = (a)), `res/values*/strings.xml`
 **Related:** `specs/code-audit-v3` Q7 (decision: the bell shows the devotionals with active notifications) and P1-3; `specs/devotional-catalog-selection` §4.2/§4.3 (long-press toggle, cycle-scoped override); `specs/code-audit-v3` P0-2, P0-3, P1-5, R1 (override, scheduling and permission behavior this reuses); `CLAUDE.md` §1.4, §2.3, §2.6
 
@@ -32,6 +32,7 @@ The panel also fixes the two weakest points of the current notification UX:
   they are). The panel calls the existing `MainViewModel.toggleNotification`.
 - **The long press stays.** It remains a shortcut on the Home card.
 - **The Profile icon stays hidden** (`SHOW_PROFILE_ACTION = false`). Separate question.
+  *(Closed 2026-10-20, `code-audit-v3` Q7: there is no Profile action; the code stays hidden.)*
 - **The widget is unchanged.**
 
 ## 3. Proposed behavior / UX
@@ -60,6 +61,9 @@ Novena de Aguinaldos                  [ ● ]
 Recordatorio 9:00 · Cierre del día 20:00
 Empieza el 16 de diciembre                    ← only outside the window
 ```
+
+*(As built, the subtitle reuses the existing `journey_starts_on` string, "Comienza el …" /
+"Starts on …", not "Empieza el …". Same meaning, one string shared with the Home card.)*
 
 - **One row per catalog devotional**, in the Home feed's order (`homeDevotionals`). Today
   that's one row. A future evergreen devotional is simply another row (§2.3).
@@ -138,7 +142,7 @@ ViewModel or store (§2.4).
 - [x] `MainActivity`: hosts the sheet (saveable open state), re-checks blocked on resume and after the permission dialog
 - [x] Strings es/en
 - [x] `compileDebugKotlin` passes; adversarial re-read of the diff: workers and the scheduler still decide firing with today's effective state (untouched)
-- [ ] Owner on-device review (scenarios in §3.3)
+- [x] Owner on-device review (scenarios in §3.3) *(owner confirmation 2026-10-20, "aprueba los specs anteriores")*
 
 ## 7. Follow-ups
 
@@ -148,7 +152,7 @@ ViewModel or store (§2.4).
 
 - Editable reminder times (per devotional or global). Needs a store and rescheduling, so it
   gets its own spec.
-- Profile icon purpose (Q7, still open).
+- ~~Profile icon purpose (Q7, still open).~~ Closed 2026-10-20: no Profile action.
 - If more devotionals exist later, consider a "turn all off" action at the top of the
   sheet.
 
@@ -161,7 +165,7 @@ ViewModel or store (§2.4).
 | `MainActivity.kt` | Hosts the sheet; passes the click and blocked state to `NovenAppBar` |
 | `presentation/notifications/NotificationPermission.kt` (new) | Permission helpers moved from `HomeScreen.kt`, unchanged |
 | `presentation/screens/home/HomeScreen.kt` | Uses the shared helpers |
-| `presentation/MainViewModel.kt` | Only if Q1/Q2 = (a): `isNotifying` uses the upcoming-window value |
-| `presentation/util/Util.kt` | Only if Q1 = (a): `isNotifyingForRelevantCycle` |
+| `presentation/MainViewModel.kt` | Q1/Q2 = (a), applied: `isNotifying` uses the upcoming-window value; `isNotifyingNow` keeps today's |
+| `presentation/util/Util.kt` | Q1 = (a), applied: `isNotifyingForRelevantCycle` |
 | `reminder/NovenaReminderScheduler.kt` | Reminder hour constants readable (`internal`) |
 | `res/values/strings.xml`, `res/values-en/strings.xml` | Sheet title, subtitle templates, blocked banner, "Abrir Ajustes", blocked bell description |

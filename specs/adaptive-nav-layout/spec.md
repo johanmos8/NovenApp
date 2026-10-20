@@ -43,7 +43,7 @@ None — resolved by the owner's Option A choice.
 - [x] Added `androidx.compose.material3:material3-adaptive-navigation-suite` (via BOM, no explicit version) to `libs.versions.toml`/`app/build.gradle.kts`
 - [x] Refactored `MyApp()` in `MainActivity.kt`: extracted `topBar`/`content`/`navigateToTopLevel`, branched on `isCompactWidth` vs. `isTopLevelRoute` for medium/expanded windows
 - [x] Verified `:app:assembleDebug` builds successfully
-- [ ] Owner to visually confirm the phone layout is pixel-identical to before, and ideally check the `"Tablet"` preview renders the rail/drawer correctly (Android Studio preview, or an actual tablet/emulator)
+- [x] Owner to visually confirm the phone layout is pixel-identical to before, and ideally check the `"Tablet"` preview renders the rail/drawer correctly (Android Studio preview, or an actual tablet/emulator) *(confirmed 2026-09-20)*
 
 ## 7. Follow-ups
 

@@ -49,7 +49,7 @@ None — all resolved 2026-09-17: positive framing confirmed; time set to 8pm; s
 - [x] Added `NovenaNotifier.showEveningCheckIn()`, refactored to share a private `showNotification()` helper with `showDailyReminder()` - both use the same `CHANNEL_ID`, distinct notification IDs
 - [x] Added positively-framed `notification_evening_check_in_text` string (both locales) - "still waiting for you," no streak/loss language
 - [x] Verified `:app:assembleDebug` builds successfully
-- [ ] Owner to confirm the 8pm check-in fires correctly and only when the day is unprayed (real-device/emulator test, since WorkManager timing isn't practically unit-testable here)
+- [x] Owner to confirm the 8pm check-in fires correctly and only when the day is unprayed (real-device/emulator test, since WorkManager timing isn't practically unit-testable here) *(confirmed 2026-09-20; scheduling later reworked per devotional and hardened in `code-audit-v3` P0-3, R5 and R6)*
 
 ## 7. Follow-ups
 

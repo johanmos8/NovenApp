@@ -40,11 +40,11 @@ This is exactly the same shape of behavior the app already has for `LyricsViewSc
 - [x] `PrayerScreen`'s existing `LaunchedEffect(pagerState.currentPage)` now also reports `currentStage.stageTitle(gozosLabel)`
 - [x] `DayScreen.route`'s `NovenAppBar` uses `currentStageTitle ?: stringResource(R.string.app_bar_section_reading)` — static fallback preserved
 - [x] Verified `:app:assembleDebug` builds successfully
-- [ ] Owner to confirm the app-bar title updates correctly while swiping through a day's pages
+- [x] Owner to confirm the app-bar title updates correctly while swiping through a day's pages *(confirmed 2026-09-20)*
 
 ## 7. Follow-ups
 
-- Consider whether the two now-similar hoisted-title state variables (`currentSongTitle`, this new one) are worth unifying into one small "current top-bar subtitle" concept in `MyApp()` — minor readability cleanup, not required for this spec to ship.
+- Consider whether the two now-similar hoisted-title state variables (`currentSongTitle`, this new one) are worth unifying into one small "current top-bar subtitle" concept in `MyApp()` — minor readability cleanup, not required for this spec to ship. *(Partly done by `code-audit-v3` P1-6: both titles now share the `ReportedTitle(entryId, title)` type and only show while their back-stack entry is current, so a new day never inherits the previous day's title. They're still two variables.)*
 
 ## 8. Files
 

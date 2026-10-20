@@ -4,7 +4,6 @@ import com.mirkwood.novenapp.debug.DebugClock
 import com.mirkwood.novenapp.presentation.model.devotional.DevotionalMeta
 import com.mirkwood.novenapp.presentation.model.devotional.DevotionalSchedule
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
 /**
@@ -223,19 +222,4 @@ object Util {
         catalog
             .filter { resolveCurrentDay(it.schedule, today) != null || it.schedule is DevotionalSchedule.Evergreen }
             .minWithOrNull(devotionalFeatureOrder)
-
-    fun calculateTimeRemaining(schedule: DevotionalSchedule, now: LocalDate = currentDate()): Long {
-        if (schedule !is DevotionalSchedule.FixedRange) return 0L
-
-        val isAfterCelebration =
-            now.monthValue == schedule.celebrationMonth && now.dayOfMonth > schedule.celebrationDay
-        val targetYear = if (isAfterCelebration) now.year + 1 else now.year
-
-        val targetDate = LocalDate.of(targetYear, schedule.celebrationMonth, schedule.celebrationDay)
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
-
-        return targetDate - System.currentTimeMillis()
-    }
 }

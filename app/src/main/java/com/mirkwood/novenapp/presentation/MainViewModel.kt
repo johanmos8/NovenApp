@@ -66,6 +66,19 @@ internal class MainViewModel(
         _previewBannerDismissed.value = true
     }
 
+    /**
+     * The date Home's celebration overlay was last closed on (Q13 in specs/code-audit-v3).
+     * Same session-only model as [previewBannerDismissed], but stamped with the date so a
+     * different celebration day - another devotional's, or a debug forced date - still
+     * shows its own overlay within the same session.
+     */
+    private val _celebrationDismissedOn = MutableStateFlow<LocalDate?>(null)
+    val celebrationDismissedOn: StateFlow<LocalDate?> = _celebrationDismissedOn
+
+    fun dismissCelebration() {
+        _celebrationDismissedOn.value = Util.currentDate()
+    }
+
     // Every catalog devotional shows a card - including a FixedRange one that hasn't
     // started yet (JourneyStatus.NotStarted's countdown), matching today's existing
     // year-round behavior for the one novena. "Relevant" only gates notifications
@@ -153,10 +166,6 @@ internal class MainViewModel(
 
     fun onAction(action: NovenaAction, navController: NavController) {
         when (action) {
-            NovenaAction.GoHome -> {
-                navController.navigate(NavigationScreen.HomeScreen.route)
-            }
-
             is NovenaAction.GoToDay -> {
                 navController.navigate(
                     NavigationScreen.DayScreen.createRoute(action.devotionalId, action.selectedDay)

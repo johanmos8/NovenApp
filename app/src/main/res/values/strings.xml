@@ -4,8 +4,6 @@
     <string name="novena_aguinaldos_title">Novena de Aguinaldos</string>
     <string name="text_ir_a">Ir al día %s</string>
     <string name="text_consideration">Consideración día %d</string>
-    <string name="text_navidad_en">Navidad en:</string>
-    <string name="text_navidad_en_yy_mm_dd">"%d días, %d horas, %d minutos, %d segundos"</string>
     <string name="gozos_title">Gozos</string>
     <string name="our_father_title">Padre Nuestro</string>
     <string name="hail_mary_title">Ave María</string>
@@ -76,9 +74,9 @@
     <string name="error_song_unavailable">Esta canción no está disponible.</string>
     <string name="day_preview_banner">Estás viendo un adelanto: este día aún no comienza</string>
     <string name="content_description_dismiss_preview_banner">Cerrar aviso de adelanto</string>
+    <string name="content_description_dismiss_celebration">Cerrar celebración</string>
     <string name="content_description_previous_day">Día anterior</string>
     <string name="content_description_next_day">Día siguiente</string>
-    <string name="home_explore_all_days">Explora cualquier día de la novena</string>
 
     <!-- Home "Camino" journey feed. See docs/home-journey-redesign.md -->
     <string name="journey_pill_in_progress">Novena en curso</string>

@@ -43,7 +43,7 @@ None — moot, see correction above. (For the record: the existing splash alread
 ## 7. Follow-ups
 
 - First-run onboarding/explainer screen, if ever wanted — separate spec.
-- `ic_logo.png` (the original, opaque-cream version) is still used as-is in `AboutUsScreen` and `NovenAppBar` - may have the same washed-out/low-contrast issue in dark mode there. Not fixed here per scope discipline; flagged for the owner to decide as a separate change.
+- `ic_logo.png` (the original, opaque-cream version) is still used as-is in `AboutUsScreen` and `NovenAppBar` - may have the same washed-out/low-contrast issue in dark mode there. Not fixed here per scope discipline; flagged for the owner to decide as a separate change. *(Still open as of 2026-10-20. It still shows in the app bar of every top-level screen. The file is also 1.1 MB for a 32 dp icon; see `code-audit-v3` §9.11.)*
 
 ## 8. Files
 

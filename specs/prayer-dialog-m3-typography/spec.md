@@ -36,7 +36,7 @@ Visually near-identical (M3's default `AlertDialog` title/body styles are close 
 - [x] Body now uses `MaterialTheme.typography.bodyLarge` instead of raw `fontSize = 18.sp`
 - [x] Removed now-unused `FontWeight`/`sp` imports
 - [x] Verified `:app:assembleDebug` builds successfully
-- [ ] Owner to confirm the dialog still looks right (should be near-identical to before)
+- [x] Owner to confirm the dialog still looks right (should be near-identical to before) *(confirmed 2026-09-20)*
 
 ## 7. Follow-ups
 

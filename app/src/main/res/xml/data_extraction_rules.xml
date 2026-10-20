@@ -2,21 +2,21 @@
 <!--
    Android 12+ backup/transfer rules. Using <include> switches both sections to an
    opt-in model - only what's listed here is ever backed up/transferred, everything
-   else (including debug_settings, listed explicitly anyway for clarity) is left out
-   by default. See the P3-3 finding in specs/code-audit-v3: progress and notification
-   preferences are exactly the kind of local, non-sensitive state a user would expect
-   to survive a device change, and debug_settings (the forced-date override) is
-   dev-only state that should never follow a user to a new device.
+   else (including debug_settings) is left out by default. An explicit <exclude> for it
+   isn't allowed: lint rejects excluding a path outside every <include>
+   (FullBackupContent, fatal in release builds). See the P3-3 finding in
+   specs/code-audit-v3: progress and notification preferences are exactly the kind of
+   local, non-sensitive state a user would expect to survive a device change, and
+   debug_settings (the forced-date override) is dev-only state that should never follow
+   a user to a new device.
 -->
 <data-extraction-rules>
     <cloud-backup>
         <include domain="file" path="datastore/devotional_progress.preferences_pb"/>
         <include domain="file" path="datastore/devotional_notifications.preferences_pb"/>
-        <exclude domain="sharedpref" path="debug_settings.xml"/>
     </cloud-backup>
     <device-transfer>
         <include domain="file" path="datastore/devotional_progress.preferences_pb"/>
         <include domain="file" path="datastore/devotional_notifications.preferences_pb"/>
-        <exclude domain="sharedpref" path="debug_settings.xml"/>
     </device-transfer>
 </data-extraction-rules>

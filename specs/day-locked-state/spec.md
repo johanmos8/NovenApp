@@ -48,7 +48,7 @@ None — resolved through conversation.
 - [x] Updated stale `DayStrip` doc-comment references in `MainActivity.kt` and `SegmentedProgressIndicator.kt`
 - [x] Verified `:app:assembleDebug` builds successfully
 - [x] **Fix (2026-09-17):** owner reported the single-row toolbar overflowed on narrow phones - the added arrows squeezed the text-size/listen controls, wrapping the listen button's label vertically. Split `PrayerToolbar` into two rows (day navigator centered on top, reading aids right-aligned below) so neither group competes for width with the other.
-- [ ] Owner to visually confirm the two-row toolbar looks right and that stepping past the last real day shows the preview banner as expected
+- [x] Owner to visually confirm the two-row toolbar looks right and that stepping past the last real day shows the preview banner as expected *(confirmed 2026-09-20; the two-row toolbar was later replaced by a single row in `specs/prayer-toolbar-single-row`, Done 2026-10-20)*
 
 ## 7. Follow-ups
 

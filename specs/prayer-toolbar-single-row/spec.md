@@ -1,7 +1,7 @@
 # Prayer toolbar: single row
 
-**Status:** In Progress — implemented, compiles; awaiting owner on-device review
-**Owner approval:** Approved by Johan Mosquera (chat, "apruebo el spec 1 con las recomendaciones, adelante"), 2026-10-19 — Q1–Q3 resolved per the recommendations
+**Status:** Done
+**Owner approval:** Approved by Johan Mosquera (chat, "apruebo el spec 1 con las recomendaciones, adelante"), 2026-10-19 — Q1–Q3 resolved per the recommendations; confirmed 2026-10-20 ("aprueba los specs anteriores")
 **Scope:** `presentation/screens/prayer/PrayerScreen.kt` (`PrayerToolbar`, `ProgressPill`), `res/values/strings.xml`, `res/values-en/strings.xml`
 **Related:** `specs/palette-tonal-containers` (independent, but changes how the pill and the Listen button look); `specs/day-screen-dynamic-title`; `specs/code-audit-v3` Q5 (candle icon); `CLAUDE.md` §2.6, §2.7
 
@@ -98,12 +98,12 @@ can't be confused with the Gozos music button.
 ## 6. Tasks
 
 - [x] `PrayerToolbar` → a single `SpaceBetween` row (navigator start, aids end), vertical padding 8dp → 4dp
-- [x] New private `TextSizeMenu`: "Aa" `IconButton` + `DropdownMenu` with A−/A+ items that stay open on tap
+- [x] New private `TextSizeMenu`: "Aa" `IconButton` + `DropdownMenu` with A−/A+ items that stay open on tap *(later moved to the shared `presentation/components/TextSizeMenu.kt`, see Follow-ups)*
 - [x] Listen → `FilledTonalIconButton`, content description `prayer_listen`/`prayer_stop`
 - [x] `ProgressPill` takes a `modifier`; text `maxLines = 1` + ellipsis
 - [x] New string `content_description_text_size` (es/en); unused `TextButton`/`PaddingValues`/`FilledTonalButton` imports removed
 - [x] `compileDebugKotlin` passes
-- [ ] Owner on-device review (narrow phone, large font scale, TalkBack, landscape/tablet)
+- [x] Owner on-device review (narrow phone, large font scale, TalkBack, landscape/tablet) *(owner confirmation 2026-10-20, "aprueba los specs anteriores")*
 
 ## 7. Follow-ups
 
@@ -114,13 +114,14 @@ can't be confused with the Gozos music button.
 
 - Persisting the text size between visits (currently `rememberSaveable` only). That
   would be a separate decision with its own persisted store.
-- If `palette-tonal-containers` is approved, re-check the pill's and the Listen
+- ~~If `palette-tonal-containers` is approved, re-check the pill's and the Listen
   button's weight together. With soft containers the pill may not need a background
-  at all (proposed there, not here).
+  at all (proposed there, not here).~~ Resolved by `palette-tonal-containers` Q2 (pill
+  has no background; Listen stays tonal), both Done 2026-10-20.
 
 ## 8. Files
 
 | File | Change |
 |---|---|
-| `presentation/screens/prayer/PrayerScreen.kt` | `PrayerToolbar` becomes one `Row`; new private `TextSizeMenu`; Listen becomes an icon-only tonal button; KDoc updated |
+| `presentation/screens/prayer/PrayerScreen.kt` | `PrayerToolbar` becomes one `Row`; new `TextSizeMenu` (private at first, now shared in `presentation/components/TextSizeMenu.kt`); Listen becomes an icon-only tonal button; KDoc updated |
 | `res/values/strings.xml`, `res/values-en/strings.xml` | New `content_description_text_size` ("Tamaño del texto" / "Text size"); reuse `prayer_listen` / `prayer_stop` as content descriptions |

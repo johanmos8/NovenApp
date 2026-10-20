@@ -39,8 +39,8 @@ Android's predictive-back gesture (system-wide since Android 14, with a preview 
 ## 6. Tasks
 
 - [x] Confirm `navigationCompose`/`activityCompose` versions already support predictive-back animations for `NavHost` (no bump needed)
-- [ ] Manually verify on an API 33+ device/emulator (predictive back enabled) that swiping back from `DayScreen`, `LyricsViewScreen`, and `AboutUsScreen` shows the preview animation correctly
-- [ ] If any route doesn't animate correctly by default, wrap that specific screen with `PredictiveBackHandler` (fallback Option A) — scoped to that route only
+- [x] Manually verify on an API 33+ device/emulator (predictive back enabled) that swiping back from `DayScreen`, `LyricsViewScreen`, and `AboutUsScreen` shows the preview animation correctly *(confirmed working on-device 2026-09-20)*
+- [x] ~~If any route doesn't animate correctly by default, wrap that specific screen with `PredictiveBackHandler` (fallback Option A) — scoped to that route only~~ Not needed: the default animation worked
 
 ## 7. Follow-ups
 

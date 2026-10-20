@@ -1,8 +1,12 @@
 # Devotional catalog & selection (Home stops assuming "the one devotional")
 
-**Status:** In Progress — implemented, awaiting owner confirmation on-device (per `CLAUDE.md` §1.1.6) - this touches notification scheduling, which can't be fully verified without a real device/emulator
-**Owner approval:** Approved by Johan Mosquera (chat, "Sí, apruebo"), 2026-09-22
+**Status:** Done
+**Owner approval:** Approved by Johan Mosquera (chat, "Sí, apruebo"), 2026-09-22; confirmed 2026-10-20 ("aprueba los specs anteriores")
 **Scope:** `presentation/MainViewModel.kt`, `presentation/screens/home/HomeScreen.kt`, `presentation/screens/home/JourneyCard.kt`, `presentation/screens/home/JourneyStatus.kt`, `reminder/*`, `widget/NovenaWidget.kt`, `debug/DebugSettings.kt`, `presentation/components/CountdownToDate.kt`
+**Sync note (2026-10-20):** later decisions changed parts of this spec. They're annotated
+in place: Toast instead of Snackbar, the cycle key instead of a "clear on close" step
+(`code-audit-v3` P0-2), the bell built as `specs/notifications-panel`, and
+`CountdownToDate.kt` deleted (`code-audit-v3` P2-4).
 **Related:** Depends on `specs/generic-devotional-content-model` (a second devotional needs a generic content shape before it can exist at all); `V3_REDESIGN_ANALYSIS.md` §0 Phase 0.6 ("Devotionals home listing" - explicitly deferred as "not needed yet"); CLAUDE.md §2.1/§2.3
 
 ---
@@ -25,7 +29,7 @@ Every devotional the catalog considers relevant today (an in-window `FixedRange`
 reusing the existing `JourneyCard` per entry rather than introducing a second, different list-item design. 
 This is also where "Dirección 2" content (a bundled daily contemplation, once built) would naturally slot in later - one more card in the same feed, not a separate surface.
 
-**Activating/deactivating a devotional:** long-pressing a card directly toggles it active/inactive (owner's explicit choice, 2026-09-22 - no context menu). To keep this discoverable despite being a "hidden" gesture with no visible affordance beforehand, the toggle fires haptic feedback plus a brief Snackbar confirmation ("Rosario diario activado" / "desactivado") the moment it happens, and the card keeps a persistent badge/check afterward so its state reads at a glance without needing to repeat the gesture to check (see Decision 4.2).
+**Activating/deactivating a devotional:** long-pressing a card directly toggles it active/inactive (owner's explicit choice, 2026-09-22 - no context menu). To keep this discoverable despite being a "hidden" gesture with no visible affordance beforehand, the toggle fires haptic feedback plus a brief Snackbar confirmation ("Rosario diario activado" / "desactivado") *(implemented as a Toast, the owner's preference; wording later made gender-neutral, "Avisos activados para %1$s", `code-audit-v3` P1-9)* the moment it happens, and the card keeps a persistent badge/check afterward so its state reads at a glance without needing to repeat the gesture to check (see Decision 4.2).
 
 **Notifications, with multiple devotionals:** no longer "featured vs. not" - see Decision 4.3. Each devotional independently can be notifying or not; a currently-open `FixedRange` novena defaults to on, an `Evergreen` devotional defaults to off until the user opts in.
 
@@ -38,11 +42,11 @@ This is also where "Dirección 2" content (a bundled daily contemplation, once b
 **4.3 — Notifications: a per-devotional toggle, not a single "active" selection.** Resolved through discussion: rather than one exclusive "active" devotional gating all reminders (which risks silently missing a time-bound novena just because something else was chosen earlier), each devotional independently has notifications on or off:
 - An in-window `FixedRange` devotional defaults to **on** the moment its window opens - nobody misses a live novena's reminder by default.
 - An `Evergreen` devotional defaults to **off** - matches the original reasoning (it's always available, so it doesn't need calendar-driven urgency), but the user can manually turn it on via the same activation mechanism (4.2) if they do want a daily nudge for it (e.g. a daily Rosary reminder).
-- **Auto-revert rule:** when a `FixedRange` devotional's window closes, its notification toggle resets to the default (off, until its next occurrence reopens it) - no stale manual state lingers past the devotional's own relevant period. `Evergreen` toggles have no natural end point, so a manual choice there persists until the user changes it. This only clears *that devotional's own* override when *its own* window closes - it does not affect any other devotional's toggle.
+- **Auto-revert rule:** when a `FixedRange` devotional's window closes, its notification toggle resets to the default (off, until its next occurrence reopens it) - no stale manual state lingers past the devotional's own relevant period. *(Superseded: implemented without a reset step, through the cycle key. An override only applies while its cycle is the relevant one, and a choice made before the window carries into it (`code-audit-v3` P0-2/Q2). Since `specs/notifications-panel` Q1/Q2, the badge and the sheet show the upcoming cycle's state, so a never-touched novena reads "on" before December.)* `Evergreen` toggles have no natural end point, so a manual choice there persists until the user changes it. This only clears *that devotional's own* override when *its own* window closes - it does not affect any other devotional's toggle.
 - **More than one devotional can notify at the same time** - this was the resolving insight: since Home already shows every relevant devotional as its own visible card (4.1), a second devotional's notification while another is also "on" doesn't read as random noise - the card explaining it is right there. This sidesteps needing a single-exclusive-active model entirely.
 - Requires `NovenaReminderScheduler`/the two workers to iterate `repository.getCatalog()` filtered to devotionals with notifications currently on, instead of assuming index 0. The home-screen widget shows one glanceable summary - the same 4.1 sort order picks which one, if several are eligible.
 
-**4.4 — Notification bell, revisited.** The earlier recommendation (remove the bell/profile icons - no code built anything for them) still holds for *this* spec, but the bell now has a concrete future justification this spec's model directly enables: an aggregate summary of which devotionals currently have notifications on (4.3). Building that summary/history UI is out of scope here (see Non-goals) - flagged as the natural follow-up spec once there's more than one real devotional to summarize.
+**4.4 — Notification bell, revisited.** The earlier recommendation (remove the bell/profile icons - no code built anything for them) still holds for *this* spec, but the bell now has a concrete future justification this spec's model directly enables: an aggregate summary of which devotionals currently have notifications on (4.3). Building that summary/history UI is out of scope here (see Non-goals) - flagged as the natural follow-up spec once there's more than one real devotional to summarize. *(Done earlier than planned: `specs/notifications-panel`, 2026-10-19, a sheet with one switch per devotional. A history was rejected. The Profile icon is closed, `code-audit-v3` Q7.)*
 
 **4.5 — Evergreen `JourneyStatus` completeness.** Unchanged from the original draft: today's `resolveJourneyStatus` has a fallback path for Evergreen, written for a single always-shown devotional. Needs its `InProgress`/`Completed` framing re-checked once a real Evergreen devotional exists - deferred, not decided abstractly here (see Open questions).
 
@@ -58,15 +62,15 @@ This is also where "Dirección 2" content (a bundled daily contemplation, once b
 - [x] **Bug caught during implementation and fixed:** an early version filtered Home down to only "relevant" (in-window or Evergreen) devotionals - which would have made Home show *nothing* for the ~356 days/year the one real novena isn't active, instead of today's countdown card. Fixed: Home always shows every catalog devotional (`JourneyStatus.NotStarted`'s countdown included); the "relevant" filter only ever applied to the *notification* default, not which cards render.
 - [x] New `data/notifications/DevotionalNotificationStore.kt` (DataStore, mirrors `DevotionalProgressStore`'s shape) - per-devotional manual on/off override, `null` = no override (use the schedule-based default)
 - [x] `Util.isNotifyingByDefault()` and `Util.pickFeaturedDevotional()` added - shared by `MainViewModel`, `NovenaReminderScheduler`, and `NovenaWidget`
-- [x] `HomeScreen` rewritten as a feed (`devotionals.forEach { JourneyCard(...) }`), long-press directly toggles notifications (haptic feedback + Snackbar confirmation, no menu - per owner's explicit choice); `JourneyCard` gained an `isNotifying` badge
+- [x] `HomeScreen` rewritten as a feed (`devotionals.forEach { JourneyCard(...) }`), long-press directly toggles notifications (haptic feedback + Snackbar confirmation *(a Toast in the code)*, no menu - per owner's explicit choice); `JourneyCard` gained an `isNotifying` badge
 - [x] `NovenaAction.GoToDay` now carries `devotionalId`; threaded through `MainActivity`'s `PendingTarget` (replacing the old bare `pendingTargetDay: Int?`), `NovenaNotifier`'s `PendingIntent` extras, and `NovenaWidget`'s launch intent
 - [x] `NovenaNotifier` notification IDs now derived per-devotional (`base + devotionalId.hashCode()`), so two devotionals' notifications no longer overwrite each other in the tray
-- [x] `NovenaReminderScheduler`/`DailyNovenaReminderWorker`/`EveningCheckInWorker` rewritten: work names and `WorkerParameters.inputData` are now per-devotional; each worker re-checks `isNotifying` before showing *and* before rescheduling itself, so turning notifications off takes effect the same day rather than waiting for the next app start; `scheduleIfNeeded` also clears a `FixedRange` devotional's stale override once its window has closed (4.3's auto-revert rule)
+- [x] `NovenaReminderScheduler`/`DailyNovenaReminderWorker`/`EveningCheckInWorker` rewritten: work names and `WorkerParameters.inputData` are now per-devotional; each worker re-checks `isNotifying` before showing *and* before rescheduling itself, so turning notifications off takes effect the same day rather than waiting for the next app start; `scheduleIfNeeded` also clears a `FixedRange` devotional's stale override once its window has closed (4.3's auto-revert rule) *(replaced by the cycle key, `code-audit-v3` P0-2: that clear step was what lost a November choice; no clear step exists now)*
 - [x] Turning notifications **on** via long-press also schedules immediately (`MainViewModel.toggleNotification`), rather than only taking effect on next app start
 - [x] **Simplification:** `WidgetMidnightRefreshWorker`'s own reschedule no longer ties its cadence to one devotional's schedule (the old code accidentally made it stop firing outside that devotional's window, and `Util.resolveNextOccurrence` doesn't handle `Evergreen` at all) - it now refreshes every midnight unconditionally, which is simpler and avoids that bug, at the cost of a few extra daily wake-ups outside any active season
 - [x] Deleted confirmed-dead code found while wiring this up: `GoToDayButton.kt` (unused since the `JourneyCard` redesign) and `NovenaViewState.kt` (fully replaced)
 - [x] Verified `:app:assembleDebug` builds successfully after each change
-- [ ] Owner to confirm on-device: Home shows the existing single novena correctly in both in-season and off-season states; long-press toggles notifications with haptic + Snackbar feedback; the 9am/8pm notifications still fire correctly; tapping a notification/widget still opens the right day
+- [x] Owner to confirm on-device: Home shows the existing single novena correctly in both in-season and off-season states; long-press toggles notifications with haptic + Snackbar feedback; the 9am/8pm notifications still fire correctly; tapping a notification/widget still opens the right day *(owner confirmation 2026-10-20, "aprueba los specs anteriores")*
 
 ## 7a. Deferred from this pass (not started)
 
@@ -74,7 +78,7 @@ This is also where "Dirección 2" content (a bundled daily contemplation, once b
 
 ## 7. Follow-ups
 
-- A future "notification center" spec building the aggregate summary/history the bell icon needs (4.4), once there's more than one real devotional to summarize.
+- ~~A future "notification center" spec building the aggregate summary/history the bell icon needs (4.4), once there's more than one real devotional to summarize.~~ Done as `specs/notifications-panel` (summary with switches, no history).
 - The activation badge's exact micro-animation (4.2) - a small implementation-time UI choice, not designed further here.
 - Business/content: the strongest candidate for the actual *second* devotional to prove all of this against is a **daily Rosary as `Evergreen`** - simpler structurally than Semana Santa (5 decades + a rotating mystery set by weekday, all public-domain/well-established text, no licensing question) and it's also the natural first step toward the "daily contemplation" year-round-engagement idea from the roadmap discussion, since an Evergreen devotional is inherently something to open any day of the year. Semana Santa (a `FixedRange` devotional, different dates each year since Easter moves) is a reasonable second addition after that, once the catalog/selection machinery has been proven with two devotionals of different schedule types.
 
@@ -84,9 +88,9 @@ This is also where "Dirección 2" content (a bundled daily contemplation, once b
 |---|---|
 | `presentation/MainViewModel.kt` | No longer resolves one `activeDevotionalId` - Home now needs the full relevant list |
 | `presentation/screens/home/HomeScreen.kt` | Becomes a scrollable feed of `JourneyCard`s (4.1), not one card |
-| `presentation/screens/home/JourneyCard.kt` | Reused per list item; add the activation badge + long-press context menu (4.2) |
+| `presentation/screens/home/JourneyCard.kt` | Reused per list item; add the activation badge + long-press toggle, no context menu (4.2) |
 | New: per-devotional notification-toggle store | Persists which devotionals currently notify (`DataStore`, mirrors `DevotionalProgressStore`'s shape) |
 | `reminder/NovenaReminderScheduler.kt`, `DailyNovenaReminderWorker.kt`, `EveningCheckInWorker.kt` | Iterate devotionals with notifications on (4.3), not index 0 |
 | `widget/NovenaWidget.kt` | Featured devotional via the 4.1 sort rule |
 | `presentation/screens/home/JourneyStatus.kt` | Evergreen framing revisited (4.5, per Open Questions) |
-| `debug/DebugSettings.kt`, `presentation/components/CountdownToDate.kt` | `.default` usages reconciled with the 4.1 sort rule |
+| `debug/DebugSettings.kt`, `presentation/components/CountdownToDate.kt` | `.default` usages reconciled with the 4.1 sort rule (`CountdownToDate.kt` since deleted, `code-audit-v3` P2-4) |

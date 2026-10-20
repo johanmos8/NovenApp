@@ -1,8 +1,12 @@
 # Code audit v3.0.0 — bugs, performance, security and best practices
 
-**Status:** In Progress — blocks A and B, plus several `v3-bugfix-batch`/§5-dependent
-items, are implemented and build clean; owner has not yet done on-device testing of
-this batch, so nothing here is `Done` (see `CLAUDE.md` §1.1.6).
+**Status:** In Progress — everything implemented so far (blocks A, B and C, R1, R2
+rollback, R5, R6, P1-11, P2-4, P4-7 and the other ✅ items) was confirmed by the owner on
+2026-10-20 ("aprueba los specs anteriores"). Still open, so the spec as a whole isn't
+`Done` (full list in §9.11): blocks D and E (P4-1…P4-4, the rest of P4-9, P4-10,
+P4-11), deferred to January 2027 by the owner's Q11 part (2) answer. P3-1, P4-6, P4-8,
+P4-12, Q13, R4 and R7's third point were done on 2026-10-20 (§9.12). The Q7 card tap is
+deferred to a future version.
 **Owner approval:** Johan Mosquera — approved incrementally during the 2026-09-22
 session: "Arregla los 7 bugs primero con mayor rigor..." authorized implementing
 P0-2, P0-3, P0-4, P2-5, P4-5, P1-7, P3-4; the Q1/Q6/Q8/Q9/Q10 answers below (same
@@ -32,7 +36,8 @@ independently.
 
 ## 2. Non-goals
 
-- Doesn't implement anything. No code has been touched.
+- Doesn't implement anything. No code has been touched. *(True when drafted on
+  2026-09-22; superseded as the owner approved fixes one by one — see §6 and §9.)*
 - Doesn't redesign screens or add features. Where a fix involves a product decision, it
   stays open in §5.
 - Doesn't replace per-fix specs. The large findings (P0-1, P0-2/P0-3, the serialization
@@ -164,7 +169,9 @@ Priority legend:
   already shows the right song. A missing id shows `MissingContentMessage` with the
   new `error_song_unavailable` string instead of `"TODO(fix)"`. The two
   `Log.d("Test")` calls in this route went with it (part of P3-2). Reading the JSON on
-  the main thread is unchanged (P2-1).
+  the main thread is unchanged (P2-1). *(Superseded the same day by P2-1, §9.10:
+  `findSong` is gone; the song is now derived with `remember(loadedSongs, songID)` from
+  `LyricsViewModel.songs`, loaded once off the main thread.)*
 
 #### P0-6 · English narration uses a Spanish voice
 
@@ -207,18 +214,18 @@ Priority legend:
 | ID | Finding | Files | Proposed fix |
 |---|---|---|---|
 | P1-1 | `LottieAnimationRender` takes a `modifier` but uses `Modifier.fillMaxSize()`, so the balloons' offset on December 25 is never applied. | `screens/home/HomeScreen.kt:151-158, 115` | Use `modifier.fillMaxSize()`. **✅ Fixed 2026-09-22** (incidentally, while rewriting this function for Q9/P2-6). |
-| P1-2 | If **any** devotional is on its celebration day, Home shows only the animation and gives no access to any devotional's prayers. | `screens/home/HomeScreen.kt:60, 67-70` | Pending decision (§5 Q6). **✅ Fixed 2026-09-22.** Per the Q6 answer, the celebration animation now renders in the same background slot the snow otherwise occupies; the devotionals feed (`Column`) always renders on top, so Dec 25 no longer hides any card. |
-| P1-3 | The top bar's Notifications and Profile buttons do nothing (`onClick = {}` by default; `MainActivity` passes no handler). "Profile" makes no sense in an app without accounts. | `components/NovenAppBar.kt:42-43, 79-95`, `MainActivity.kt:175-183` | Pending decision (§5 Q7). Per the owner's correction this session, the icons are **not** to be removed — the Notifications icon is meant to eventually open a list of active-notification devotionals, a feature not yet specced. Still open: what (if anything) the Profile icon should do. |
+| P1-2 | If **any** devotional is on its celebration day, Home shows only the animation and gives no access to any devotional's prayers. | `screens/home/HomeScreen.kt:60, 67-70` | Pending decision (§5 Q6). **✅ Fixed 2026-09-22.** Per the Q6 answer, the celebration animation now renders in the same background slot the snow otherwise occupies; the devotionals feed (`Column`) always renders on top, so Dec 25 no longer hides any card. *(Revised 2026-10-19, Q6: a devotional's own card is hidden on its celebration day so it doesn't cover the sign. Other devotionals keep theirs. With one novena, Dec 25 shows only the animation. See Q13 in §9.11.)* |
+| P1-3 | The top bar's Notifications and Profile buttons do nothing (`onClick = {}` by default; `MainActivity` passes no handler). "Profile" makes no sense in an app without accounts. | `components/NovenAppBar.kt:42-43, 79-95`, `MainActivity.kt:175-183` | Pending decision (§5 Q7). Per the owner's correction this session, the icons are **not** to be removed — the Notifications icon is meant to eventually open a list of active-notification devotionals, a feature not yet specced. Still open: what (if anything) the Profile icon should do. **✅ Closed.** Notifications: built as `specs/notifications-panel` (Done 2026-10-20). Profile: hidden 2026-09-22 (§9.6); on 2026-10-20 the owner closed it ("el icono de perfil ya no existe") — no Profile action in the product. The code stays hidden behind `SHOW_PROFILE_ACTION = false` (hide, don't remove); deleting it would be a separate, explicit ask. |
 | P1-4 | The `POST_NOTIFICATIONS` permission is requested **every time** Home comes back into view (the `LaunchedEffect(Unit)` restarts on each tab switch), not once per launch as the comment says. It's requested on first launch with no explanation. | `screens/home/HomeScreen.kt:123-148` | Request it only once (remember that it was requested) or when a notification is turned on. The exact timing is in §5 (Q8). **✅ Fixed 2026-09-22** (per Q8 answer). `rememberNotificationPermissionRequester()` returns a lambda invoked only from the long-press handler when `!wasNotifying`, replacing the old unconditional `LaunchedEffect(Unit)`. |
 | P1-5 | The Toast says "activated: you'll get alerts" even when the notification permission is denied, and the "Active" badge still shows. | `screens/home/HomeScreen.kt:94-101` | Check the permission when turning on; if denied, request it or explain how to enable it in Settings. **✅ Fixed 2026-09-22** (with R1, see §9.5). Turning on now checks `NotificationManagerCompat.areNotificationsEnabled()`: if enabled → "activated" Toast; if the Android 13+ permission is missing → the system dialog is shown and the Toast comes from its result; otherwise (denied for good, or blocked in system Settings) → a new `devotional_notifications_blocked` Toast pointing to Settings. The "Active" badge itself is unchanged (R1 option (c) wasn't chosen). |
 | P1-6 | `currentStageTitle` isn't reset to `null` when leaving DayScreen, so entering another day briefly shows the title of the previous day's last page. | `MainActivity.kt:142-144, 184-187` | Set it to `null` on route change or reset it per navigation entry. **✅ Fixed 2026-09-24** (see §9.10). |
-| P1-7 | The card uses `combinedClickable(onClick = {})`: tapping it shows the touch ripple and does nothing. The ripple isn't clipped to the rounded shape (the modifier is applied outside `ElevatedCard`). There's no `onLongClickLabel`, so the long press can't be discovered with TalkBack. | `screens/home/HomeScreen.kt:93-101`, `screens/home/JourneyCard.kt:113` | Add `onLongClickLabel`, clip to the card's `shape`, and decide what a plain tap does (§5 Q7). **✅ Fixed 2026-09-22** for the ripple clipping and `onLongClickLabel` (approved with the "7 bugs" fix pass). What a plain tap should do is still open — currently still a no-op `onClick = {}`. |
+| P1-7 | The card uses `combinedClickable(onClick = {})`: tapping it shows the touch ripple and does nothing. The ripple isn't clipped to the rounded shape (the modifier is applied outside `ElevatedCard`). There's no `onLongClickLabel`, so the long press can't be discovered with TalkBack. | `screens/home/HomeScreen.kt:93-101`, `screens/home/JourneyCard.kt:113` | Add `onLongClickLabel`, clip to the card's `shape`, and decide what a plain tap does (§5 Q7). **✅ Fixed 2026-09-22** for the ripple clipping and `onLongClickLabel` (approved with the "7 bugs" fix pass). What a plain tap should do is still open — currently still a no-op `onClick = {}`. *(The ripple clip was rolled back with R2 (§9.8): `onLongClickLabel` stays, the ripple is rectangular again by the owner's accepted trade-off. The plain-tap question is still open, Q7.)* |
 | P1-8 | Missing plurals: "Faltan 1 días" / "1 days to go". There's no `<plurals>` anywhere in the project. | `res/values/strings.xml:63`, `res/values-en/strings.xml:61`, `widget/NovenaWidget.kt:115`, `screens/home/JourneyCard.kt:355` | Move to `<plurals>` and `pluralStringResource`. Also, `NotStartedBody` reuses a widget string: split them. **✅ Fixed 2026-09-24** (see §9.10). |
 | P1-9 | `"%1$s activada"` hardcodes the grammatical gender and doesn't fit masculine devotional names ("Rosario activada"). | `res/values/strings.xml:84-85` | Reword without gender ("Avisos activados para %1$s"). **✅ Fixed 2026-09-24** (see §9.10). |
 | P1-10 | The Gozos music and the voice narration keep playing with the app in the background. Audio focus isn't requested. | `components/GozosScreen.kt:249-269`, `screens/prayer/PrayerNarrator.kt` | Pause on `ON_STOP` (`LifecycleEventEffect`) and request audio focus. **✅ Fixed 2026-09-24** (see §9.10). |
-| P1-11 | The widget has hardcoded colors, so it has no dark mode or dynamic colors. It picks the devotional with `DebugClock` but computes the day with `LocalDate.now()`. | `widget/NovenaWidget.kt:50, 58, 76, 85, 95` | Use `GlanceTheme` and a single date source. |
+| P1-11 | The widget has hardcoded colors, so it has no dark mode or dynamic colors. It picks the devotional with `DebugClock` but computes the day with `LocalDate.now()`. | `widget/NovenaWidget.kt:50, 58, 76, 85, 95` | Use `GlanceTheme` and a single date source. **✅ Fixed 2026-09-22** (§9.8, option (a): the app's brand palette via `GlanceTheme`, no dynamic color). Still open, debug builds only: the devotional is picked with `DebugClock` but the day uses `LocalDate.now()`. |
 | P1-12 | Hardcoded UI text: `"Villancicos"` as the initial title and `"TODO(fix)"` (see P0-5). The debug texts (`MoreScreen.kt:103-189`) are acceptable since they're gated by `BuildConfig.DEBUG`; the `"Dec 25"` preset label is hardcoded even though its date comes from the catalog. | `MainActivity.kt:141`, `AppNavHost.kt:212`, `MoreScreen.kt:105` | Move to `strings.xml`. **✅ Fixed 2026-09-24** (see §9.10). |
-| P1-13 | A fire icon (`LocalFireDepartment`) on the "Day N of 9" pill. It's the typical streak symbol, in tension with `CLAUDE.md` §2.6. The "Listen" button uses `MusicNote`, which is easy to confuse with the Gozos music button. | `screens/prayer/PrayerScreen.kt:442, 415` | Pending decision (§5 Q5). |
+| P1-13 | A fire icon (`LocalFireDepartment`) on the "Day N of 9" pill. It's the typical streak symbol, in tension with `CLAUDE.md` §2.6. The "Listen" button uses `MusicNote`, which is easy to confuse with the Gozos music button. | `screens/prayer/PrayerScreen.kt:442, 415` | Pending decision (§5 Q5). **✅ Fixed 2026-09-22** (§9.6/§9.8): Material Symbols candle (`candle_24px`, tinted `CandleAccent`) on the day pill, `VolumeUp` for Listen. |
 | P1-14 | `LyricsScreen` has no horizontal padding and a fixed `fontSize = 18.sp`; the `songTitle` and `onBack` parameters are unused. | `screens/lyrics/LyricsScreen.kt:19-37` | Use the theme typography, add padding, and remove the unused parameters. **✅ Fixed 2026-09-24** (see §9.10). |
 
 ---
@@ -232,7 +239,7 @@ Priority legend:
 | P2-3 | `MediaPlayer.create` runs on the main thread every time the Gozos page composes, even if the user never plays the music. | `components/GozosScreen.kt:251-256` | Create the player on the first play tap. **✅ Fixed 2026-09-24** (see §9.10). |
 | P2-4 | `CountdownToDate` uses `LaunchedEffect(key1 = remainingTime)`, which restarts every second. It's dead code anyway (P4-6). | `components/CountdownToDate.kt:37-42` | Delete it (P4-6) or key on `schedule`. **✅ Fixed 2026-09-24:** file deleted (owner: "si no se usa borralo"). |
 | P2-5 | `homeDevotionals` is collected with `collectAsState`, which stays active with the app in the background. | `AppNavHost.kt:61, 232-233` | Use `collectAsStateWithLifecycle` (add `lifecycle-runtime-compose`). **✅ Fixed 2026-09-22** (approved with the "7 bugs" fix pass). Added `androidx-lifecycle-runtime-compose`; `homeDevotionals` and `DayScreen`'s completed-days flow now use `collectAsStateWithLifecycle()`. |
-| P2-6 | The snow Lottie animation loops forever behind Home: it drains battery and ignores the reduce-animations setting. | `screens/home/HomeScreen.kt:72, 151-158` | Pause when "Remove animations" is on, and consider stopping after N loops (visual decision: §5 Q9). **✅ Fixed 2026-09-22** (per Q9 answer: stop after a time budget, not a loop count). `LottieAnimationRender` now loops for up to `maxLoopDuration` (30s default) via `rememberLottieAnimatable()`, and skips animating entirely when `Settings.Global.ANIMATOR_DURATION_SCALE == 0f` (system "Remove animations" on). |
+| P2-6 | The snow Lottie animation loops forever behind Home: it drains battery and ignores the reduce-animations setting. | `screens/home/HomeScreen.kt:72, 151-158` | Pause when "Remove animations" is on, and consider stopping after N loops (visual decision: §5 Q9). **✅ Fixed 2026-09-22** (per Q9 answer: stop after a time budget, not a loop count). `LottieAnimationRender` now loops for up to `maxLoopDuration` (30s default; raised to 1 minute per the owner, §9.6) via `rememberLottieAnimatable()`, and skips animating entirely when `Settings.Global.ANIMATOR_DURATION_SCALE == 0f` (system "Remove animations" on). |
 
 ---
 
@@ -246,9 +253,9 @@ right: `MainActivity` is exported but `AppNavHost.kt:101` validates the incoming
 
 | ID | Finding | Files | Proposed fix |
 |---|---|---|---|
-| P3-1 | `isMinifyEnabled = false` in release: no obfuscation, no code or resource shrinking, and the debug code ships in the APK. **Turning it on without rules breaks Gson** for the `DevotionalContent`/`Song` models. | `app/build.gradle.kts` (`release` block), `app/proguard-rules.pro` | Enable R8 together with `@Keep`/rules for the models, or do it after migrating to kotlinx.serialization (P4-1). It touches release config, so it needs explicit approval (`CLAUDE.md` §1.1.5). |
+| P3-1 | `isMinifyEnabled = false` in release: no obfuscation, no code or resource shrinking, and the debug code ships in the APK. **Turning it on without rules breaks Gson** for the `DevotionalContent`/`Song` models. | `app/build.gradle.kts` (`release` block), `app/proguard-rules.pro` | Enable R8 together with `@Keep`/rules for the models, or do it after migrating to kotlinx.serialization (P4-1). It touches release config, so it needs explicit approval (`CLAUDE.md` §1.1.5). **✅ Fixed 2026-10-20** (owner: "aprobados"). `isMinifyEnabled` + `isShrinkResources` are on, with keep rules for the four Gson models and `TypeToken` in `proguard-rules.pro`; kotlinx.serialization (P4-1) wasn't a prerequisite. The bundle went from 25.5 MB to 13.5 MB. Checked in the output: model field names intact, the `TypeToken` subclass present, workers/receiver kept, every drawable/raw/asset still packaged. **Needs an on-device run of the signed release build**, since R8 problems only show at runtime. |
 | P3-2 | `Log.d("Test", …)` calls remain in production code. | `AppNavHost.kt:106, 190, 202` | Remove them. **✅ Fixed 2026-09-24** (see §9.10). |
-| P3-3 | `backup_rules.xml` and `data_extraction_rules.xml` are the empty templates: everything is backed up without a decision (including `debug_settings`). | `res/xml/backup_rules.xml`, `res/xml/data_extraction_rules.xml` | Include progress and notification preferences, exclude `debug_settings` (§5 Q10). **✅ Fixed 2026-09-22** (per Q10 answer: yes, back up). Both files now `<include>` the two DataStore preference files (`devotional_progress.preferences_pb`, `devotional_notifications.preferences_pb`) and `<exclude>` `debug_settings.xml`. |
+| P3-3 | `backup_rules.xml` and `data_extraction_rules.xml` are the empty templates: everything is backed up without a decision (including `debug_settings`). | `res/xml/backup_rules.xml`, `res/xml/data_extraction_rules.xml` | Include progress and notification preferences, exclude `debug_settings` (§5 Q10). **✅ Fixed 2026-09-22** (per Q10 answer: yes, back up). Both files now `<include>` the two DataStore preference files (`devotional_progress.preferences_pb`, `devotional_notifications.preferences_pb`) and `<exclude>` `debug_settings.xml`. *(2026-10-20: the `<exclude>` lines were removed — lint rejects excluding a path outside every `<include>` (`FullBackupContent`, fatal, it broke `bundleRelease`). Behavior is unchanged: the opt-in `<include>` list already leaves `debug_settings` out; see §9.11.)* |
 | P3-4 | An unstructured `CoroutineScope(Dispatchers.Default)` with no exception handling in `Application.onCreate`. A DataStore or WorkManager error there crashes the app on launch. | `NovenAppApplication.kt:23-25` | Add a `SupervisorJob` and `CoroutineExceptionHandler`, or move scheduling into a startup worker. **✅ Fixed 2026-09-22** (approved with the "7 bugs" fix pass). `startupScope` now combines `SupervisorJob()` with a `CoroutineExceptionHandler` that logs instead of crashing. |
 
 ---
@@ -262,13 +269,13 @@ right: `MainActivity` is exported but `AppNavHost.kt:101` validates the incoming
 | P4-3 | The ViewModel takes a `Context` parameter (`toggleNotification`). `NovenaReminderScheduler` and `DebugNotificationTrigger` are `object`s that fetch their own dependencies from Koin (`KoinComponent`), in tension with the "everything goes through the DI graph" principle (`CLAUDE.md` §2.4). They're also hard to test. | `MainViewModel.kt:94`, `reminder/NovenaReminderScheduler.kt:37-40`, `debug/DebugNotificationTrigger.kt` | Turn the scheduler into a class injected with `applicationContext` and use it from the ViewModel. |
 | P4-4 | `Util.resolveNextOccurrence` and `Util.calculateTimeRemaining` don't handle windows that cross the year boundary (e.g. Dec 28–Jan 5), unlike `resolveCurrentDay`. `calculateTimeRemaining` also mixes `DebugClock` with `System.currentTimeMillis()`. It's latent with the current novena and goes against the per-devotional date config principle (§2.2). | `presentation/util/Util.kt:55-64, 97-110` | Rewrite with the same strategy as `resolveCurrentDay` and cover it with tests (P4-8). |
 | P4-5 | The Home sort order is duplicated: `HOME_SORT_ORDER` and the `pickFeaturedDevotional` comparator are copies and can drift apart. | `MainViewModel.kt:120-129`, `Util.kt:87-95` | Extract a single comparator. **✅ Fixed 2026-09-22** (approved with the "7 bugs" fix pass). `Util.devotionalFeatureOrder` is now the single comparator; `MainViewModel.HOME_SORT_ORDER` and `Util.pickFeaturedDevotional` both delegate to it. |
-| P4-6 | **Dead code:** `MainTitle.kt`, **`MainTitle.kt~` (a backup tracked in git)**, `CountdownToDate.kt`, `NovenaAction.GoHome`, `Util.calculateTimeRemaining`, the `text_navidad_en*` strings. While the image-less blocks are in use, `buildDevotionalDayPrayers`, `ReadingWithImageScreen` and `DevotionalMeta.images` are also unused (depends on §5 Q3). `DevotionalDayContent.day` is ignored (the day is looked up by index). | `presentation/components/MainTitle.kt(~)`, `components/CountdownToDate.kt`, `NovenaAction.kt:5`, `Util.kt:97`, `strings.xml:7-8`, `AppNavHost.kt:123-124`, `mapper/DevotionalDayMapper.kt:21-25`, `model/DevotionalContent.kt:18` | Delete once approved; deleting files requires a separate confirmation (`CLAUDE.md` §1.1.5). |
-| P4-7 | The card gradient's hardcoded colors violate `CLAUDE.md` §2.7. It also uses `isSystemInDarkTheme()` instead of the app's actual theme. | `screens/home/JourneyCard.kt:76-91` | Derive them from `colorScheme.primaryContainer` and `secondaryContainer`. |
-| P4-8 | There are no real tests (only `ExampleUnitTest`). The date logic (`Util`), `resolveJourneyStatus` and the mapper are pure functions that are easy to test. | `app/src/test/**` | Add unit tests, starting with the P0-1, P0-2 and P4-4 cases. |
+| P4-6 | **Dead code:** `MainTitle.kt`, **`MainTitle.kt~` (a backup tracked in git)**, `CountdownToDate.kt`, `NovenaAction.GoHome`, `Util.calculateTimeRemaining`, the `text_navidad_en*` strings. While the image-less blocks are in use, `buildDevotionalDayPrayers`, `ReadingWithImageScreen` and `DevotionalMeta.images` are also unused (depends on §5 Q3). `DevotionalDayContent.day` is ignored (the day is looked up by index). | `presentation/components/MainTitle.kt(~)`, `components/CountdownToDate.kt`, `NovenaAction.kt:5`, `Util.kt:97`, `strings.xml:7-8`, `AppNavHost.kt:123-124`, `mapper/DevotionalDayMapper.kt:21-25`, `model/DevotionalContent.kt:18` | Delete once approved; deleting files requires a separate confirmation (`CLAUDE.md` §1.1.5). **Partial:** `CountdownToDate.kt` deleted 2026-09-24 (P2-4). Still present: `MainTitle.kt`, `MainTitle.kt~`, `NovenaAction.GoHome`, `Util.calculateTimeRemaining`, the `text_navidad_en*` strings, and the images path (kept per Q3). **✅ Rest deleted 2026-10-20** (owner: "aprobados"): `MainTitle.kt`, `MainTitle.kt~`, `NovenaAction.GoHome` (and its branch in `MainViewModel.onAction`), `Util.calculateTimeRemaining`, `text_navidad_en`, `text_navidad_en_yy_mm_dd`, `home_explore_all_days` (es/en). The images path stays per Q3. |
+| P4-7 | The card gradient's hardcoded colors violate `CLAUDE.md` §2.7. It also uses `isSystemInDarkTheme()` instead of the app's actual theme. | `screens/home/JourneyCard.kt:76-91` | Derive them from `colorScheme.primaryContainer` and `secondaryContainer`. **✅ Fixed 2026-10-19** by `specs/palette-tonal-containers` §3.3: the gradient now comes from `MaterialTheme`, no hexes, no `isSystemInDarkTheme()`. |
+| P4-8 | There are no real tests (only `ExampleUnitTest`). The date logic (`Util`), `resolveJourneyStatus` and the mapper are pure functions that are easy to test. | `app/src/test/**` | Add unit tests, starting with the P0-1, P0-2 and P4-4 cases. **✅ 2026-10-20** (§9.12): 24 tests, plus 1 `@Ignore`d for P4-4. |
 | P4-9 | Text styling: a fixed `18.sp` instead of the theme typography; `Arrangement.Center` inside `verticalScroll` has no effect; `TextAlign.Justify` hurts readability at large font sizes. | `screens/prayer/ReadingScreen.kt:49-58`, `ReadingWithImageScreen.kt:107-114` | Use a scaled `bodyLarge` and left alignment (the visual change is in §5 Q9). **Partially fixed 2026-09-22**: `TextAlign.Justify` → `TextAlign.Start` in both files (per Q9). The fixed `18.sp`/theme-typography and the dead `Arrangement.Center` are still open. |
 | P4-10 | Compose details: `PrayerFooter` rebuilds its list on every recomposition and uses `SpaceBetween` inside `horizontalScroll`, where it has no effect; `!!` on Compose state (`PrayerFooter.kt:57`, `AppNavHost.kt:205-208`); `ReadingWithImageScreen` has unused imports and uses `LocalConfiguration.screenHeightDp` instead of `BoxWithConstraints`; `PreviewApp` applies the theme twice. | `screens/prayer/PrayerFooter.kt`, `ReadingWithImageScreen.kt`, `MainActivity.kt:307-314` | Minor cleanup. |
-| P4-11 | Build: `sourceCompatibility`/`jvmTarget` at 1.8 (17 recommended); deprecated `kotlinOptions` block; `versionCode = 12` set by hand while `VERSION_NAME` comes from `gradle.properties`. | `app/build.gradle.kts` | Update. It touches the build, so it needs approval. |
-| P4-12 | `CLAUDE.md` §2.7 mentions the `RedChristmas`/`GreenChristmas`/`GoldChristmas` tokens, which no longer exist in `ui/theme/Color.kt`. | `CLAUDE.md` | Propose the change as a diff for approval (don't edit directly). |
+| P4-11 | Build: `sourceCompatibility`/`jvmTarget` at 1.8 (17 recommended); deprecated `kotlinOptions` block; `versionCode = 12` set by hand while `VERSION_NAME` comes from `gradle.properties`. | `app/build.gradle.kts` | Update. It touches the build, so it needs approval. *(2026-10-20: `versionCode` bumped to 13 for the 3.0.0 bundle at the owner's request; the rest is still open.)* |
+| P4-12 | `CLAUDE.md` §2.7 mentions the `RedChristmas`/`GreenChristmas`/`GoldChristmas` tokens, which no longer exist in `ui/theme/Color.kt`. | `CLAUDE.md` | Propose the change as a diff for approval (don't edit directly). **✅ Applied 2026-10-20** (owner: "aprobados"): §2.7 now points to "a named accent token from `ui/theme/Color.kt`, such as `CandleAccent`". |
 
 ---
 
@@ -282,11 +289,11 @@ right: `MainActivity` is exported but `AppNavHost.kt:101` validates the incoming
 | Block | Contents | Why separate | Status |
 |---|---|---|---|
 | A · `season-progress-reset` | P0-1 | Changes the persisted data model and needs a migration. | **✅ Done 2026-09-22** |
-| B · `notification-scheduling-fixes` | P0-2, P0-3, P1-4, P1-5 | All one flow: permission, manual override, WorkManager. | P0-2, P0-3, P1-4 done 2026-09-22; P1-5 and the R1 regression done 2026-09-22 (§9.5). Related follow-ups R5/R6 still open. |
+| B · `notification-scheduling-fixes` | P0-2, P0-3, P1-4, P1-5 | All one flow: permission, manual override, WorkManager. | P0-2, P0-3, P1-4 done 2026-09-22; P1-5 and the R1 regression done 2026-09-22 (§9.5). R5/R6 done 2026-09-22 (§9.9). **Block B complete.** |
 | C · `v3-bugfix-batch` | P0-4, P0-5, P0-6, P0-7, P1-1, P1-6, P1-7, P1-8, P1-9, P1-10, P1-12, P1-14, P2-1…P2-5, P3-2, P3-4 | Well-scoped fixes with no pending product decisions. | P0-4, P1-1, P1-7 (partial), P2-5, P3-4 done 2026-09-22. **Approved 2026-09-24 (Q11).** Everything done 2026-09-24 (§9.10), including P2-4. **Block C complete** (pending on-device testing). |
 | D · `serialization-and-layers` | P4-1, P4-2, P4-3, P3-1 | Cross-cutting refactor; R8 depends on the serialization. | Not started — deferred until after the season (see Q11). |
 | E · `cleanup-and-tests` | P4-4…P4-11 | Technical debt; the tests protect A and B. | Not started, except P4-5, P4-9 (partial) done 2026-09-22 as drive-by fixes. Deferred (see Q11). |
-| — | P1-2, P1-3, P1-11, P1-13, P2-6, P3-3, P4-12 | Depend on the answers in §5. | P1-2, P2-6, P3-3 done 2026-09-22 (Q6/Q9/Q10). P1-3 partially answered (icons stay). **Still open:** P1-11, P1-13, P4-12. |
+| — | P1-2, P1-3, P1-11, P1-13, P2-6, P3-3, P4-12 | Depend on the answers in §5. | P1-2, P2-6, P3-3 done 2026-09-22 (Q6/Q9/Q10). P1-11 and P1-13 done 2026-09-22 (§9.8). P1-3 closed 2026-10-20 (Q7). **Still open:** P4-12 (diff proposed, not applied). |
 
 **Recommendation:** A and B first (they affect the December 2026 season), then C. D and
 E can come after the season. **Status as of 2026-09-22:** A and B (except P1-5) are
@@ -343,6 +350,8 @@ Decisions that belong to the owner. Each one notes which finding it unblocks.
   neutral icon (calendar, candle, star)? And the "Listen" icon with a speaker or
   headphones?
   - **Status:** still open — "pendiente por definir." Not decided this session.
+  - **✅ Closed (2026-09-22, §9.6/§9.8):** candle (Material Symbols) on the day pill,
+    speaker (`VolumeUp`) for "Listen".
 - **Q6 (P1-2) — December 25.** Should Home show only the celebration animation, or the
   animation plus access to the prayers/cards? With several devotionals, should one's
   celebration hide the others?
@@ -366,6 +375,19 @@ Decisions that belong to the owner. Each one notes which finding it unblocks.
     earlier wrong recommendation from the assistant to remove it). **Still open:**
     what the Profile icon should do, and whether a plain tap on the card should open
     the current day.
+  - **Update (2026-09-22, §9.6):** Profile hidden, not removed; card tap left as a no-op
+    with a `TODO(owner)`.
+  - **Notifications icon ✅ (2026-10-19):** built as `specs/notifications-panel` (a sheet
+    with a switch per devotional; a notification history was considered and rejected).
+  - **Profile ✅ closed (2026-10-20):** "el icono de perfil ya no existe" — no Profile
+    action in the product. The hidden code stays (`SHOW_PROFILE_ACTION = false`); its
+    `TODO(owner)` comment in `NovenAppBar.kt` is now stale (see §9.11).
+  - **Still open:** what a plain tap on the journey card does (`TODO(owner)` in
+    `HomeScreen.kt`, currently a no-op).
+  - **Card tap → deferred (2026-10-20):** "dejémoslo así por ahora, dejar un TODO de
+    definición para futuras versiones, pero por ahora no tocar". It stays a no-op for
+    3.0.0. The existing `TODO(owner)` in `HomeScreen.kt` is the marker, and the code is
+    unchanged. Revisit in a future version.
 - **Q8 (P1-4) — When to request the notification permission.** On first launch (as now,
   but only once), when a notification is turned on, or behind a screen that explains
   why first?
@@ -382,6 +404,7 @@ Decisions that belong to the owner. Each one notes which finding it unblocks.
     after a time budget rather than looping forever — "por tiempo de uso mayor a x
     tiempo" (30s, chosen as a reasonable default; not separately specced). Text:
     left-aligned, not justified. Both implemented: see P2-6 and P4-9 above.
+  - **Revised (2026-09-22, §9.6):** the owner set the budget to "1 min".
 - **Q10 (P3-3) — Backup.** Should progress and notification preferences be backed up to
   the cloud (recommended), or nothing?
   - **Decision (2026-09-22):** "sí" — back up progress and notification preferences,
@@ -399,6 +422,21 @@ Decisions that belong to the owner. Each one notes which finding it unblocks.
   - **Decision (2026-09-24), part (1):** "adelante con el bloque C, empieza por P0-5,
     P0-6 y P0-7". Block C is approved now, starting with those three. Part (2),
     deferring D/E until after the season, hasn't been explicitly answered yet.
+  - **Decision (2026-10-20), part (2):** "aprobado" to this split. **Before the season:**
+    P4-8 unit tests only (done, §9.12). **January 2027, one spec each:** block D (P4-1
+    kotlinx.serialization, P4-2 package move, P4-3 injectable scheduler) and the rest of
+    block E (P4-4 year-wrap, P4-9 typography, P4-10 Compose cleanup, P4-11 JDK 17 /
+    `compilerOptions` / AGP). P3-1 was moved out of block D and done without the
+    serialization migration, using keep rules (see the P3-1 row).
+- **Q13 (§9.11) — Dec 25.** Q12 keeps "Completed" through the celebration day, but the
+  card was hidden that day, so it was never visible.
+  - **Decision (2026-10-20):** "b" — a full-screen celebration overlay on top of Home,
+    closed with a tap anywhere, the close button, or back. Once closed, Home shows every
+    card as on any other day ("Completed" included). Closing lasts for the session
+    (in memory, stamped with the date, like the preview banner); it shows again on the
+    next launch. Same rule for every devotional, on its own celebration day. This
+    supersedes Q6's revision (the card no longer steps aside) and P1-2's "celebration
+    behind the feed".
 
 ## 6. Tasks
 
@@ -414,9 +452,11 @@ answer in §5. Owner has not yet done on-device testing of any of it.
 - [x] P1-1 — `LottieAnimationRender` honors its `modifier` parameter
 - [x] P1-2 — celebration animation no longer hides the devotionals feed
 - [x] P1-4 — notification permission requested only on long-press activation
-- [x] P1-7 — ripple clipped to card shape, `onLongClickLabel` added
+- [x] P1-7 — ripple clipped to card shape, `onLongClickLabel` added (clip later rolled
+      back with R2, §9.8; the label stays)
 - [x] P2-5 — `collectAsStateWithLifecycle` for `homeDevotionals` and day progress
-- [x] P2-6 — Lottie animations stop after a 30s time budget, skip when reduce-motion is on
+- [x] P2-6 — Lottie animations stop after a time budget (30s, then 1 min per §9.6), skip
+      when reduce-motion is on
 - [x] P3-3 — backup/data-extraction rules include progress + notifications, exclude debug
 - [x] P3-4 — `SupervisorJob` + `CoroutineExceptionHandler` on the startup scope
 - [x] P4-5 — single `Util.devotionalFeatureOrder` comparator, no duplication
@@ -429,10 +469,18 @@ answer in §5. Owner has not yet done on-device testing of any of it.
 - [x] Rest of `v3-bugfix-batch`: P1-6, P1-8, P1-9, P1-10, P1-12, P1-14, P2-1, P2-2,
       P2-3, P3-2 (§9.10)
 - [x] P2-4 — `CountdownToDate.kt` deleted (explicit OK 2026-09-24)
-- [ ] Block D (`serialization-and-layers`) and Block E (`cleanup-and-tests`) — blocked
-      on Q11 part (2)
-- [ ] Q5 (day-screen icons), Q7 profile-icon purpose, Q11 (order/split) — awaiting
-      owner answers
+- [ ] Block D (`serialization-and-layers`) and the rest of Block E — deferred to January
+      2027, one spec each (Q11 part (2), 2026-10-20)
+- [x] P4-8 — unit tests for the date/cycle logic and `resolveJourneyStatus` (§9.12)
+- [x] Q13 — celebration overlay (§9.12)
+- [x] R4 — reduce-motion holds the last frame (§9.12)
+- [x] R7 point 3 — DayScreen state keyed on (devotional, day) (§9.12)
+- [x] Q5 (day-screen icons) — closed §9.8
+- [x] Q7 Profile icon — closed 2026-10-20 (no Profile action; code stays hidden)
+- [x] R1 limitations, R2 rollback, R5, R6, P1-11, P1-13 (§9.6–§9.9)
+- [x] Owner confirmation of everything above — 2026-10-20 ("aprueba los specs anteriores")
+- [x] ~~Q7 plain card tap, Q11 part (2), R4, R7 — awaiting owner answers (§9.11)~~
+      All answered 2026-10-20: Q7 deferred, the rest above.
 
 ## 7. Follow-ups
 
@@ -440,8 +488,9 @@ answer in §5. Owner has not yet done on-device testing of any of it.
   (positive-only framing, `CLAUDE.md` §2.6). That would get its own spec.
 - Review the `raw/` and `drawable/` resources left unused after Q3 to reduce APK size.
 - Review every screen with TalkBack after block C.
-- Spec out the Notifications-icon feature agreed in Q7: a list/view of devotionals with
-  active notifications, reachable from `NovenAppBar`'s bell icon.
+- ~~Spec out the Notifications-icon feature agreed in Q7: a list/view of devotionals with
+  active notifications, reachable from `NovenAppBar`'s bell icon.~~ Done:
+  `specs/notifications-panel`.
 - Author English carol content for `songs.json` (Q4) — content gap, not a code task.
 
 ## 8. Files
@@ -600,6 +649,9 @@ present** in code (e.g. `"TODO(fix)"` at `AppNavHost.kt:216`, `es-CO` at
 
 ### 9.3 Spec bookkeeping to reconcile (owner's call)
 
+*(All reconciled 2026-10-20, §9.11: §2 annotated, Q2 confirmed in §9.6, Q9 set to 1 min
+in §9.6, Status header rewritten.)*
+
 - §2 Non-goals still says "No code has been touched", which is no longer true.
 - **Q2 was never actually answered by the owner.** It's recorded as "resolved as part of
   Q1's cycle-key design (not asked separately)". Under `CLAUDE.md` §1.1.3 it still needs
@@ -612,9 +664,9 @@ present** in code (e.g. `"TODO(fix)"` at `AppNavHost.kt:216`, `es-CO` at
 
 ### 9.4 New open questions
 
-- **Q12 (R3):** Should "Completed" survive through the celebration day (or longer), or
-  reset the day after the window closes as it does now?
-- ~~**Q12 (R3):**~~ Answered: reset on the 26th — see §9.6.
+- ~~**Q12 (R3):** Should "Completed" survive through the celebration day (or longer), or
+  reset the day after the window closes as it does now?~~ Answered: reset on the 26th —
+  see §9.6.
 - ~~**Q8 (reopened, R1):** How should the permission be requested for notifications that
   are on by default?~~ Answered: option (a) together with P1-5 — see §9.5.
 
@@ -658,7 +710,8 @@ present** in code (e.g. `"TODO(fix)"` at `AppNavHost.kt:216`, `es-CO` at
     first reminders; option (b) would have covered this.
   - `areNotificationsEnabled()` is app-level. If the user blocks only the
     `novena_daily_reminder` channel, the Toast still says "activated". Checking the
-    channel is possible if wanted.
+    channel is possible if wanted. *(Superseded by §9.6: `canPostNotifications()` now
+    checks the channel too.)*
   - The "Active" badge still shows while notifications are blocked. That was option
     (c), which wasn't chosen. *(Superseded by §9.6: a blocked bell is now shown next to it.)*
   - Not tested on a device.
@@ -671,7 +724,7 @@ present** in code (e.g. `"TODO(fix)"` at `AppNavHost.kt:216`, `es-CO` at
 | Q9 | "1 min" (30s was too short) | ✅ `LottieAnimationRender`'s `maxLoopDuration` default is now `1.minutes` (`HomeScreen.kt`). |
 | Q12 (R3) | "reiniciar el 26" | ✅ New `Util.resolveProgressCycleKey`: same keys as `resolveCycleKey`, but a `FixedRange` cycle stays current **through its celebration day**. Used for completed-day progress only (`resolveEffectiveCompletedDays`, `MainViewModel.toggleDayCompleted`). |
 | Q5 | Candle for the day pill, speaker for "Listen" | ◐ "Listen" now uses `Icons.AutoMirrored.Filled.VolumeUp`. **Candle pending:** `material-icons-extended` has no candle icon (only `CandlestickChart`, a finance chart) — needs an owner call (see §9.7). The fire icon is unchanged for now. |
-| Q7 | Profile: "no hace nada por ahora. esconder, no remover". Card tap: leave as is, TODO for later | ✅ Profile hidden behind `SHOW_PROFILE_ACTION = false` in `NovenAppBar.kt`, code kept, with a `TODO(owner)`. Card `onClick = {}` kept, with a `TODO(owner)` in `HomeScreen.kt`. Both still open as product decisions (§7 follow-up). |
+| Q7 | Profile: "no hace nada por ahora. esconder, no remover". Card tap: leave as is, TODO for later | ✅ Profile hidden behind `SHOW_PROFILE_ACTION = false` in `NovenAppBar.kt`, code kept, with a `TODO(owner)`. Card `onClick = {}` kept, with a `TODO(owner)` in `HomeScreen.kt`. Both still open as product decisions (§7 follow-up). *(Profile closed 2026-10-20; the card tap is still open.)* |
 | R1 limitation 1 | Accepted: first-season reminders can be missed if the app isn't opened | ✅ Accepted, no change. |
 | R1 limitation 2 | "sí": check the specific channel | ✅ New `NovenaNotifier.canPostNotifications()`: app-level enabled **and** the `novena_daily_reminder` channel not at `IMPORTANCE_NONE` (a channel that doesn't exist yet counts as allowed). Home's Toasts now use it. |
 | R1 limitation 3 | Add a blocked-bell icon next to "Active" | ✅ `JourneyCard`/`ActiveBadge` take `notificationsBlocked`; when the devotional is on and notifications can't be shown, a `NotificationsOff` icon (tinted `colorScheme.error`, with a content description) appears next to "Active". Home re-checks on every resume (`LifecycleResumeEffect`) and after the permission dialog. |
@@ -694,6 +747,9 @@ Dec 26, which is consistent with the answer.
 Not tested on a device.
 
 ### 9.7 Still open after round 3
+
+*(Historical snapshot. Since then: Q5, P1-11 and R2 closed in §9.8; R5/R6 in §9.9; Q7
+Profile closed 2026-10-20. For what's open now, see §9.11.)*
 
 - **Q5 candle icon:** pick one of (a) import a candle vector from Material Symbols as a
   drawable, (b) another existing icon, (c) a custom drawable the owner provides.
@@ -772,8 +828,111 @@ the text).
 | P2-3 | The new `SoundtrackPlayer` creates the `MediaPlayer` on the first play, not when the Gozos page first shows. |
 | P3-2 | The last `Log.d("Test")` (DayScreen route) removed; none remain. |
 
-**P2-4 still open:** `CountdownToDate` is dead code. Deleting the file needs an explicit OK (`CLAUDE.md` §1.1.5, P4-6); the alternative is to fix its `LaunchedEffect` key and keep it.
+**P2-4 still open** *(superseded the same day: deleted with the owner's OK, "si no se usa borralo" — see the P2-4 row)*: `CountdownToDate` is dead code. Deleting the file needs an explicit OK (`CLAUDE.md` §1.1.5, P4-6); the alternative is to fix its `LaunchedEffect` key and keep it.
 
 **Verification:** `compileDebugKotlin` passes. Adversarial re-read of the diff: no bugs found. Traced by hand: rotation with music playing (the music continues, restarting from the beginning, same as before); app to background with music or narration (both stop; music stays paused on return); a call during the music (pauses); ← / → between days (fallback title, then the new day's; content parsed once); a restore straight onto a lyrics screen (blank until the list loads, then the right song); an id that doesn't exist (message). Pre-existing, not new: with `launchSingleTop` (R7), a notification tap onto an already-open DayScreen reuses the entry, so the page title can carry over. Not tested on a device.
 
 **P2-4 ✅ (2026-09-24, "si no se usa borralo"):** confirmed unused (its only caller was its own preview) and deleted `presentation/components/CountdownToDate.kt`; `compileDebugKotlin` passes. This leaves `Util.calculateTimeRemaining` and the `text_navidad_en*` strings with no callers. They were already listed as dead code under P4-6 (block E) and weren't touched here.
+
+### 9.11 Spec sync and release review (2026-10-20)
+
+**Owner input this session:** "aprueba los specs anteriores" (everything implemented so
+far confirmed) and "q7, el icono de perfil ya no existe" (Profile closed, §5 Q7). Every
+spec's questions and statuses were re-checked against the code, and stale lines were
+annotated in place rather than rewritten, so the history stays readable.
+
+**Changed in code this session** (uncommitted at the time of writing):
+- `res/xml/backup_rules.xml`, `res/xml/data_extraction_rules.xml`: removed the
+  `<exclude … debug_settings.xml>` lines. Lint flags them `FullBackupContent` (fatal),
+  which made `lintVitalRelease` — and with it `bundleRelease` — fail. Behavior is
+  unchanged (the `<include>` list is opt-in). See P3-3.
+- `app/build.gradle.kts`: `versionCode` 12 → 13 for the 3.0.0 bundle (`versionName`
+  already `3.0.0`). `bundleRelease` now passes. The bundle is unsigned (no
+  `signingConfig`; signing stays manual), its native libraries are 16 KB-aligned, and it
+  weighs 25.5 MB against 15 MB for versionCode 10, mostly because R8 is off (P3-1).
+
+**Still open** (the single list to use from now on; §9.7 is historical):
+
+| Item | What's pending |
+|---|---|
+| Q7 (card tap) | Deferred to a future version (owner, 2026-10-20). No-op for 3.0.0; `TODO(owner)` stays in `HomeScreen.kt`. |
+| ~~Q11 part (2)~~ | ✅ Answered 2026-10-20: D/E in January 2027, P4-8 now (§5 Q11). |
+| ~~Q13~~ | ✅ Celebration overlay, done 2026-10-20 (§5 Q13, §9.12). |
+| ~~R4~~ | ✅ Last frame, done 2026-10-20 (§9.12). |
+| R7 | Point 3 ✅ done 2026-10-20 (§9.12). Points 1 (debug-only clock mismatch) and 2 (orphaned dev-only keys) left as is, as recommended. |
+| P1-11 residue | Widget: `DebugClock` for the devotional, `LocalDate.now()` for the day (debug only). |
+| ~~P3-1~~ | ✅ Done 2026-10-20 (see the P3-1 row). Only the on-device run of the signed release build is pending. |
+| P4-1…P4-4, P4-10, P4-11 | Deferred to January 2027 (Q11 part (2)). P4-8 ✅ (§9.12). P4-9: the fixed `18.sp` (now `18.sp * textScale`) and the dead `Arrangement.Center` remain. |
+| ~~P4-6 rest~~ | ✅ Deleted 2026-10-20 (see the P4-6 row). |
+| ~~P4-12~~ | ✅ Applied 2026-10-20. |
+| Stale comment | `NovenAppBar.kt`'s `TODO(owner): define what Profile does` no longer matches Q7's decision. A comment-only change, not made without an OK. |
+
+**New findings from the 2026-10-20 release review** (not yet triaged by the owner):
+- Debug and release share `applicationId`, so a debug build can't be installed next to
+  the Play version (`applicationIdSuffix = ".debug"` would fix it).
+- Committed binaries: `app/release/*.aab` (three bundles of ~15 MB each), `baselineProfiles`,
+  and a stale `output-metadata.json` (v1.1).
+- `ic_logo.png` (1.1 MB, 1024×1024) is decoded for a 32 dp icon in every app bar.
+- Unused or redundant dependencies: `coil`, `runtime-livedata`, a pinned
+  `ui-text-android` 1.6.0; `:compose-preview` pulls `appcompat` + `material` into release.
+- Non-fatal lint errors: `LocalContextConfigurationRead` (`AppNavHost.kt:121`) and
+  `LocalContextGetResourceValueCall` (`NotificationsSheet.kt:141`).
+- Home's "N days to go" can lag a day if the app sits on Home across midnight (the
+  `remember` keys don't include the date).
+- Narration doesn't request audio focus, so it can overlap the Gozos music.
+
+### 9.12 Q13, R4, R7 and P4-8 (2026-10-20)
+
+**Owner input:** "2 b, 3 aprobado, 4 a, 5 arregla el punto 3".
+
+**Changed:**
+- **Q13** — `HomeScreen.kt`: the card no longer steps aside on its celebration day, and
+  snow always plays behind the feed. On a celebration day, a `CelebrationOverlay`
+  (balloons and sign on the theme background, close button at the top right) covers
+  Home's content area. The app bar and navigation bar stay visible. A tap anywhere, the
+  close button, or back (`BackHandler`) closes it. `MainViewModel.celebrationDismissedOn`
+  stores the date it was closed, in memory only, so it stays closed for the session and
+  comes back on the next launch or on a different celebration date. New strings:
+  `content_description_dismiss_celebration` ("Cerrar celebración" / "Close celebration").
+- **R4** — `LottieAnimationRender`: with "Remove animations" on, it snaps to
+  `progress = 1f` (the last frame) instead of staying on frame 0. This applies to every
+  Lottie animation, the snow included.
+- **R7 point 3** — `AppNavHost.kt`: `PrayerScreen` is wrapped in `key(devotionalId,
+  currentDay)`, so a reused DayScreen entry that switches day starts fresh: first page,
+  1× text, narration stopped, and the new day's page title reported.
+- **P4-8** — new `app/src/test/.../util/UtilTest.kt` (19 tests) and
+  `.../screens/home/JourneyStatusTest.kt` (5 tests). They cover the window edges (Dec 15,
+  16, 24, 25, 26), a range that wraps into January, the cycle and progress keys, the
+  notification overrides (a November override lasts through the season and expires after
+  it), completed days through Dec 25 and reset on Dec 26, the featured devotional, and the
+  Home card's states. One test is `@Ignore`d on purpose because it documents P4-4 (the
+  year-wrap in `resolveNextOccurrence`). The scheduler's private "skip a time that already
+  passed" loop is not covered: testing it means pulling it out of `enqueue`, which belongs
+  with P4-3 (January).
+
+**Verification:** `testDebugUnitTest` passes (24 passed, 1 skipped). `compileDebugKotlin`
+and `lintVitalRelease` pass. Traced by hand:
+- Dec 24 → not a celebration day, so no overlay. If the app stays open on Home through
+  midnight, the overlay only appears once Home is re-entered (`refreshCurrentDay` runs
+  on navigation to Home, not at midnight). This is the existing "Home lags a day"
+  finding in §9.11, not something new.
+- Dec 25, first open → overlay. Close it, open a day, come back → still closed. Rotate →
+  still closed (the ViewModel survives). Kill and reopen → overlay again.
+- Dec 25 with all 9 days → "Completed" card under the overlay. With fewer days → "356 days
+  to go" plus the existing preview entry. That matches `JourneyStatusTest` and Q12.
+- Dec 26 → no overlay. Progress resets.
+- Debug forced date: switching to another celebration date shows the overlay again,
+  because the stored dismissal date no longer matches.
+- Notification for day 4 while on day 3's Gozos page → day 4 opens on its first page at
+  1×. Same-day notification → the key doesn't change, so the reading position is kept.
+  The ← / → arrows already create a new entry, so nothing changes there.
+
+**Confirmed as intended (owner, 2026-10-20):** "Completed" shows as soon as all 9 days
+are marked, even before Dec 24 or before the window opens (days marked as a preview
+count toward the upcoming season). "esta bien así, hay empresas, lugares que rezan la
+novena off time, por facilidad y disponibilidad": marking days out of season or ahead
+of the calendar is a real use, not something to block.
+
+**To check on device:** the overlay's look in light and dark mode, and the last frame of
+`animation_merry`, `animation_celebration` and the snow with "Remove animations" on (if a
+last frame looks wrong, fall back to option (b), a chosen frame for that file).

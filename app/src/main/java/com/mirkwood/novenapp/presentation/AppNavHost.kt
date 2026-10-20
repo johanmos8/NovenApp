@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -69,6 +70,7 @@ internal fun AppNavHost(
     // the P2-5 finding in specs/code-audit-v3.
     val homeDevotionals by mainViewModel.homeDevotionals.collectAsStateWithLifecycle()
     val previewBannerDismissed by mainViewModel.previewBannerDismissed.collectAsStateWithLifecycle()
+    val celebrationDismissedOn by mainViewModel.celebrationDismissedOn.collectAsStateWithLifecycle()
     val lyricsViewModel: LyricsViewModel = koinViewModel()
     NavHost(
         navController = navController,
@@ -84,7 +86,9 @@ internal fun AppNavHost(
                     mainViewModel.toggleNotification(context, devotionalId, isCurrentlyNotifying)
                 },
                 hasAutoPromptedPermission = mainViewModel::hasAutoPromptedNotificationPermission,
-                onAutoPromptedPermission = mainViewModel::markNotificationPermissionAutoPrompted
+                onAutoPromptedPermission = mainViewModel::markNotificationPermissionAutoPrompted,
+                celebrationDismissed = celebrationDismissedOn == Util.currentDate(),
+                onDismissCelebration = mainViewModel::dismissCelebration
             )
         }
         composable(
@@ -155,21 +159,26 @@ internal fun AppNavHost(
                     val onNextDay = (currentDay + 1).takeIf { it <= devotionalMeta.totalDays }
                         ?.let { nextDay -> { navController.navigateToDevotionalDay(devotionalId, nextDay) } }
 
-                    PrayerScreen(
-                        prayers = list,
-                        deviceLanguage = language,
-                        dayNumber = currentDay,
-                        totalDays = devotionalMeta.totalDays,
-                        isPreview = isPreview && !previewBannerDismissed,
-                        onDismissPreview = mainViewModel::dismissPreviewBanner,
-                        isDayCompleted = currentDay in completedDays,
-                        onToggleDayCompleted = {
-                            mainViewModel.toggleDayCompleted(devotionalId, currentDay, currentDay in completedDays)
-                        },
-                        onPreviousDay = onPreviousDay,
-                        onNextDay = onNextDay,
-                        onStageTitleChange = { title -> onStageTitleUpdated(backStackEntry.id, title) }
-                    )
+                    // A notification for another day reuses this same back-stack entry
+                    // (launchSingleTop on GoToDay), so without this key the new day would
+                    // open on the old day's page and text size (R7 in specs/code-audit-v3).
+                    key(devotionalId, currentDay) {
+                        PrayerScreen(
+                            prayers = list,
+                            deviceLanguage = language,
+                            dayNumber = currentDay,
+                            totalDays = devotionalMeta.totalDays,
+                            isPreview = isPreview && !previewBannerDismissed,
+                            onDismissPreview = mainViewModel::dismissPreviewBanner,
+                            isDayCompleted = currentDay in completedDays,
+                            onToggleDayCompleted = {
+                                mainViewModel.toggleDayCompleted(devotionalId, currentDay, currentDay in completedDays)
+                            },
+                            onPreviousDay = onPreviousDay,
+                            onNextDay = onNextDay,
+                            onStageTitleChange = { title -> onStageTitleUpdated(backStackEntry.id, title) }
+                        )
+                    }
                 } else if (loadedContent != null) {
                     // Content loaded, but this day index doesn't exist in it (catalog's
                     // totalDays drifted from the JSON's actual day count) - show a

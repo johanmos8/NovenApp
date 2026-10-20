@@ -3,10 +3,14 @@ package com.mirkwood.novenapp.presentation.screens.home
 import android.Manifest
 import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +19,11 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,9 +72,11 @@ internal fun HomeScreen(
     onToggleNotification: (devotionalId: String, isCurrentlyNotifying: Boolean) -> Unit,
     // Defaults make previews (and any caller that doesn't wire them) never auto-prompt.
     hasAutoPromptedPermission: () -> Boolean = { true },
-    onAutoPromptedPermission: () -> Unit = {}
+    onAutoPromptedPermission: () -> Unit = {},
+    celebrationDismissed: Boolean = false,
+    onDismissCelebration: () -> Unit = {}
 ) {
-    val isChristmas = devotionals.any { Util.isCelebrationDay(it.devotional.schedule) }
+    val isCelebrationDay = devotionals.any { Util.isCelebrationDay(it.devotional.schedule) }
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val enabledMessage = stringResource(R.string.devotional_notifications_enabled)
@@ -115,19 +126,8 @@ internal fun HomeScreen(
         }
     }
 
-    // A devotional on its own celebration day steps aside so the celebration sign isn't
-    // covered by its card; any other devotional keeps its card (owner's revision of Q6
-    // in specs/code-audit-v3).
-    val visibleDevotionals = devotionals.filterNot { Util.isCelebrationDay(it.devotional.schedule) }
-
     Box(modifier = Modifier.fillMaxSize()) {
-        // The celebration plays behind the devotionals feed, same slot the snow
-        // background otherwise occupies (P1-2 in specs/code-audit-v3).
-        if (isChristmas) {
-            CelebrationAnimation()
-        } else {
-            LottieAnimationRender(R.raw.animation_snow_falling)
-        }
+        LottieAnimationRender(R.raw.animation_snow_falling)
 
         Column(
             modifier = Modifier
@@ -136,7 +136,7 @@ internal fun HomeScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            visibleDevotionals.forEach { item ->
+            devotionals.forEach { item ->
                 val title = stringResource(item.devotional.titleResId)
                 val journeyStatus = remember(item.devotional, item.currentDay, item.completedDays) {
                     resolveJourneyStatus(item.devotional, item.currentDay, item.completedDays)
@@ -200,6 +200,45 @@ internal fun HomeScreen(
                 )
             }
         }
+
+        // On a celebration day the sign plays on top of the feed, where no card can cover
+        // it, until it's closed; the cards underneath - "Completed" included - are then
+        // reachable as on any other day (Q13 in specs/code-audit-v3).
+        if (isCelebrationDay && !celebrationDismissed) {
+            CelebrationOverlay(onDismiss = onDismissCelebration)
+        }
+    }
+}
+
+/** Covers the feed; a tap anywhere, the close button, or back dismisses it. */
+@Composable
+private fun CelebrationOverlay(onDismiss: () -> Unit) {
+    BackHandler(onBack = onDismiss)
+    val dismissLabel = stringResource(R.string.content_description_dismiss_celebration)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClickLabel = dismissLabel,
+                onClick = onDismiss
+            )
+    ) {
+        CelebrationAnimation()
+        IconButton(
+            onClick = onDismiss,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = dismissLabel,
+                tint = MaterialTheme.colorScheme.onBackground
+            )
+        }
     }
 }
 
@@ -221,9 +260,10 @@ internal fun CelebrationAnimation() {
 /**
  * Loops for up to [maxLoopDuration] (a decorative background animation has no reason
  * to run - and drain battery - for as long as the app happens to stay open), then
- * settles on whatever frame it was on. Skips animating at all, holding on the first
- * frame, when the system's "Remove animations" accessibility setting is on
- * (`ANIMATOR_DURATION_SCALE == 0`). See the P2-6 finding in specs/code-audit-v3.
+ * settles on whatever frame it was on. Skips animating at all when the system's
+ * "Remove animations" accessibility setting is on (`ANIMATOR_DURATION_SCALE == 0`),
+ * holding on the *last* frame - the first one can be empty, e.g. the celebration sign
+ * before it draws in (P2-6 and R4 in specs/code-audit-v3).
  */
 @Composable
 internal fun LottieAnimationRender(
@@ -242,7 +282,10 @@ internal fun LottieAnimationRender(
 
     LaunchedEffect(composition, reduceMotionEnabled) {
         val loadedComposition = composition ?: return@LaunchedEffect
-        if (reduceMotionEnabled) return@LaunchedEffect
+        if (reduceMotionEnabled) {
+            animatable.snapTo(loadedComposition, progress = 1f)
+            return@LaunchedEffect
+        }
         val deadline = System.nanoTime() + maxLoopDuration.inWholeNanoseconds
         while (isActive && System.nanoTime() < deadline) {
             animatable.animate(loadedComposition, iterations = 1)

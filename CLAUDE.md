@@ -144,8 +144,8 @@ beyond the single Christmas novena it started as.
    streak model is only appropriate for a future evergreen or self-paced devotional,
    and even then needs its own spec before it's built.
 7. **Theme tokens over hardcoded colors.** No `Color.White`/`Color.DarkGray`/etc.
-   literals in composables — use `MaterialTheme.colorScheme` (or the seasonal
-   `RedChristmas`/`GreenChristmas`/`GoldChristmas` tokens where a seasonal accent is
+   literals in composables — use `MaterialTheme.colorScheme` (or a named accent token
+   from `ui/theme/Color.kt`, such as `CandleAccent`, where a deliberate accent is
    intended) so dark mode and dynamic color stay honored everywhere.
 8. **Don't build ahead of content.** Speculative structure for a devotional type that
    doesn't exist yet (e.g. `SelfPaced` scheduling with no self-paced content authored)

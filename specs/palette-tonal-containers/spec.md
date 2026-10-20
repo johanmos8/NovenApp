@@ -1,7 +1,7 @@
 # Palette: tonal containers and a color-role hierarchy
 
-**Status:** In Progress — implemented, compiles; awaiting owner on-device review
-**Owner approval:** Approved by Johan Mosquera (chat, "si, ajusta y apruebo, implementa"), 2026-10-19, including the per-screen role audit (§3.3) and the adjusted secondary rule (§3.2). Q1–Q5 resolved per the recommendations (§5)
+**Status:** Done
+**Owner approval:** Approved by Johan Mosquera (chat, "si, ajusta y apruebo, implementa"), 2026-10-19, including the per-screen role audit (§3.3) and the adjusted secondary rule (§3.2). Q1–Q5 resolved per the recommendations (§5); confirmed 2026-10-20 ("aprueba los specs anteriores")
 **Scope:** `ui/theme/Color.kt`; call sites re-weighted per §3.3: `presentation/screens/home/JourneyCard.kt`, `presentation/screens/prayer/PrayerScreen.kt` (`ProgressPill`), `presentation/components/GozosScreen.kt`, `presentation/screens/lyrics/SongListScreen.kt`, `presentation/components/NovenAppBar.kt`. Indirectly every screen, the bottom nav / rail, and the Glance widget (`widget/NovenaWidget.kt` reuses `LightColorScheme`/`DarkColorScheme`)
 **Related:** `specs/material3-expressive-pass`, `specs/m3-visual-polish-pass` (where the current "Novena Contemplative MD3" palette came from); `specs/code-audit-v3` P4-7 (card gradient), P1-11 (widget theming); `specs/prayer-toolbar-single-row`; `CLAUDE.md` §2.7
 
@@ -49,7 +49,8 @@ candlelit, liturgical app. This spec keeps them and fixes their tones.
 - Doesn't turn on dynamic color (`dynamicColor = false` stays). That's a separate
   product decision.
 - Doesn't restructure the lyrics content (marking choruses, stanza spacing). That
-  needs `songs.json` changes; see Follow-ups.
+  needs `songs.json` changes; see Follow-ups. *(Done later the same day without a
+  content change; see Follow-ups.)*
 - Doesn't change layout. Toolbar layout is `specs/prayer-toolbar-single-row`.
 - Doesn't redo the widget's layout. It just inherits the new tones (see §4.4).
 
@@ -167,12 +168,14 @@ unchanged by this spec.
 - [x] `DarkTertiary` → generated tone 80 #E5B5FF (owner OK 2026-10-19, "sí, aplica el #E5B5FF"): the derived value was 3.8:1 as text on the dark surface once Gozos numbers started using it; now 7.8:1. A deliberate exception to "dark non-container roles keep their values"
 - [x] Call sites per §3.3
 - [x] `compileDebugKotlin` passes
-- [ ] Owner on-device pass: light and dark, every screen in §3.4, widget
+- [x] Owner on-device pass: light and dark, every screen in §3.4, widget *(owner confirmation 2026-10-20, "aprueba los specs anteriores")*
 
 ## 7. Follow-ups
 
 - ~~Lyrics structure~~ → done 2026-10-19 without a content change (owner: "hazlo directamente, apruebo la propuesta"). `LyricsScreen` splits stanzas on blank lines, shows the artist with a `tertiary` note, and marks the chorus (the single most-repeated stanza, ≥ 3 times, no tie) in `tertiary` italics. The chorus rule was chosen by the owner over "any repeated stanza", which highlighted up to 9/10 stanzas. Detected in 9 of 12 songs. None in Noche de Paz, El Tamborilero or Hacia Belén.
-- P1-11: real `GlanceTheme`/dynamic colors for the widget.
+- ~~P1-11: real `GlanceTheme`/dynamic colors for the widget.~~ Already resolved
+  2026-09-22 (`code-audit-v3` §9.8): `GlanceTheme` with the app's brand palette, option
+  (a). Dynamic color was deliberately not chosen, matching the app (`dynamicColor = false`).
 - Re-evaluate `dynamicColor` as a user option once the base palette is right.
 
 ## 8. Files
